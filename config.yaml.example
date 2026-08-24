@@ -1,0 +1,33 @@
+# 配置文件示例（不含真实密钥）
+# 复制为 config.yaml 后填入实际值；config.yaml 在 .gitignore 中，不会被提交。
+#
+# 字段语义与默认值见 docs/config.md。
+
+app:
+  name: "auto-comfy-maker"
+  log_level: "info"          # trace | debug | info | warn | error
+
+prompt:
+  default_lang: "zh"         # zh | en | mixed
+  default_strategy: "comma"   # comma | newline | natural
+  default_max_length: 800
+  default_seed: 0
+
+comfyui:
+  url: "http://127.0.0.1:8188"
+  poll_interval_secs: 2
+  timeout_secs: 300
+
+llm:
+  enabled: false             # true 时启用 --refine
+  provider: "openai"          # openai | anthropic
+  model: "gpt-4o-mini"        # openai: gpt-4o-mini/gpt-4o；anthropic: claude-3-5-sonnet 等
+  api_key: ""                 # 留空则读 OPENAI_API_KEY / ANTHROPIC_API_KEY
+  base_url: ""                # 自定义 endpoint；anthropic 必填
+
+paths:
+  themes_dir: "themes"
+  tags_dir: "tags"
+  output_dir: "output"
+  logs_dir: "logs"
+  templates_dir: "templates"
