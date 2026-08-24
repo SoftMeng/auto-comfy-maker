@@ -125,6 +125,32 @@ mod tests {
     }
 
     #[test]
+    fn replace_text_special_chars_roundtrip() {
+        // 含换行/双引号/反斜杠/制表符的 prompt：replace 后经 serde_json
+        // round-trip 必须保留原字符，不能让 ComfyUI 解析失败
+        let tricky = "line1\nline2\twith tab\n\"quoted\"\nand \\backslash";
+        let mut wf = sample_workflow();
+        let mut r = WorkflowReplacer::new(&mut wf);
+        r.replace_text("6", "inputs.text", tricky).unwrap();
+
+        let serialized = serde_json::to_string(&wf).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(parsed["6"]["inputs"]["text"].as_str().unwrap(), tricky);
+    }
+
+    #[test]
+    fn replace_text_unicode_roundtrip() {
+        // 中文 / emoji / 零宽字符也需安全
+        let tricky = "中文 prompt 🚀\u{200B}zwsp";
+        let mut wf = sample_workflow();
+        let mut r = WorkflowReplacer::new(&mut wf);
+        r.replace_text("6", "inputs.text", tricky).unwrap();
+
+        let parsed: serde_json::Value = serde_json::from_str(&serde_json::to_string(&wf).unwrap()).unwrap();
+        assert_eq!(parsed["6"]["inputs"]["text"].as_str().unwrap(), tricky);
+    }
+
+    #[test]
     fn replace_int_by_node_and_field() {
         let mut wf = sample_workflow();
         let mut r = WorkflowReplacer::new(&mut wf);

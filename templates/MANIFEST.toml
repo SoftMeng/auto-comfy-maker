@@ -6,9 +6,7 @@
 # 3. 运行 `cargo run -- generate --template <name> --theme <t> --lang <l>`
 
 [templates.default]
-positive_prompt_node = "6"
+positive_prompt_node = "91"
 positive_prompt_field = "inputs.text"
-negative_prompt_node = "7"
-negative_prompt_field = "inputs.text"
-seed_node = "3"
+seed_node = "82"
 seed_field = "inputs.seed"
