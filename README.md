@@ -281,40 +281,69 @@ tags/
 
 ## 📸 生成示例
 
-<table>
-<tr>
-<td width="50%">
+> 以下示例均由 `anima-drawing-v5` 主题自动生成，使用相同的 Anima 模型与冲突规则。读者可复制下方 prompt 自行复现。
 
-**Anima Drawing v5 - 民国女学生**
+### 🌸 民国女学生 · Scholar Daughter
 
-![民国女学生](output/2026-08-24/20260824-154737_4e6a05e2.jpg)
+![民国女学生](docs/assets/examples/republic-era-student.jpg)
 
-</td>
-<td width="50%">
+```text
+masterpiece, best quality, score_7, safe, highres, absurdres,
+1girl, solo, focus on single character, dynasty era,
+mandarin square, song dynasty hangzhou west lake,
+scholar daughter, @ciloranko, medium hair, arms behind head
+```
 
-**Anima Drawing v5 - 韩服角色**
+**主题**：`anima-drawing-v5`
+**关键标签**：`mandarin square` · `scholar daughter` · `@ciloranko`
 
-![韩服角色](output/2026-08-24/20260824-155657_b6d9cd64.jpg)
+---
 
-</td>
-</tr>
-<tr>
-<td width="50%">
+### 🌺 韩服角色 · Apprentice Geisha
 
-**Anima Simple - 高跟鞋角色**
+![韩服角色](docs/assets/examples/hanbok-character.jpg)
 
-![高跟鞋](output/2026-08-24/20260824-160736_1892bf0a.jpg)
+```text
+masterpiece, best quality, score_7, safe, highres, absurdres,
+1girl, solo, focus on single character, goryeo dynasty,
+wide obi, edo yoshiwara pleasure quarter, apprentice geisha,
+@vagabond, hair down, seiza
+```
 
-</td>
-<td width="50%">
+**主题**：`anima-drawing-v5`
+**关键标签**：`wide obi` · `apprentice geisha` · `@vagabond`
 
-**Anima Drawing v5 - 现代场景**
+---
 
-![现代场景](output/2026-08-24/20260824-151042_0236155d.jpg)
+### 👠 高跟鞋角色 · Office Lady
 
-</td>
-</tr>
-</table>
+![高跟鞋](docs/assets/examples/high-heels-character.jpg)
+
+```text
+masterpiece, best quality, score_7, safe, highres, absurdres,
+1girl, solo, focus on single character, meiji era,
+office lady suit, fog, magical girl,
+@chinese artist, braided bun, standing
+```
+
+**主题**：`anima-drawing-v5`
+**关键标签**：`office lady suit` · `braided bun` · `@chinese artist`
+
+---
+
+### 🏰 现代场景 · Cafe Owner
+
+![现代场景](docs/assets/examples/modern-scene.jpg)
+
+```text
+masterpiece, best quality, score_7, safe, highres, absurdres,
+1girl, solo, focus on single character, steampunk world,
+twelve-layer robe, himalayan foothill monastery, cafe owner,
+@ice, ponytail, cross-legged
+```
+
+**主题**：`anima-drawing-v5`
+**关键标签**：`twelve-layer robe` · `cafe owner` · `@ice`
 
 ---
 
