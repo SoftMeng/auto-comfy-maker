@@ -52,7 +52,7 @@ pub struct DaemonArgs {
     #[arg(long, default_value_t = 1)]
     pub count_per_tick: u32,
 
-    #[arg(long, default_value = "default")]
+    #[arg(long, default_value = "zimage")]
     pub template: String,
 
     #[arg(long)]

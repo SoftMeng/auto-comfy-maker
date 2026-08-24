@@ -26,7 +26,7 @@ pub struct BatchArgs {
     #[arg(long, default_value_t = 0)]
     pub seed: u64,
 
-    #[arg(long, default_value = "default")]
+    #[arg(long, default_value = "zimage")]
     pub template: String,
 
     #[arg(long)]
