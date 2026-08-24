@@ -7,6 +7,7 @@ mod cli;
 mod comfyui;
 mod config;
 mod prompt_engine;
+mod scheduler;
 mod tags;
 mod theme;
 
@@ -20,6 +21,10 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Commands {
     Generate(cli::GenerateArgs),
+    Batch(cli::BatchArgs),
+    Daemon(cli::DaemonArgs),
+    Tags(cli::TagsArgs),
+    Config(cli::ConfigArgs),
 }
 
 fn project_root() -> PathBuf {
@@ -40,6 +45,10 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Commands::Generate(args) => cli::run_generate(args, root).await.context("generate")?,
+        Commands::Batch(args) => cli::run_batch(args, root).await.context("batch")?,
+        Commands::Daemon(args) => cli::run_daemon(args, root).await.context("daemon")?,
+        Commands::Tags(args) => cli::run_tags(args, root).context("tags")?,
+        Commands::Config(args) => cli::run_config(args, root).context("config")?,
     }
     Ok(())
 }

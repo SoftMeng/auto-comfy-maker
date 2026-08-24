@@ -1,18 +1,10 @@
 use std::path::PathBuf;
-use std::time::Duration;
 
 use anyhow::{Context, Result};
 use clap::Args;
-use serde_json::Value;
 
-use crate::comfyui::download::download_and_save;
-use crate::comfyui::prompt::{poll_until_ready, submit_prompt};
-use crate::comfyui::workflow::Manifest;
-use crate::comfyui::{make_client_id, ComfyuiClient, WorkflowReplacer};
+use super::pipeline::{run_pipeline, PipelineOpts};
 use crate::config::AppConfig;
-use crate::prompt_engine::{build_agent, combine, refine, AgentKind, CombineContext, CombineStrategy, LlmConfig, Provider};
-use crate::tags::{Lang, LangAwarePool};
-use crate::theme::Theme;
 
 #[derive(Debug, Args)]
 pub struct GenerateArgs {
@@ -44,172 +36,26 @@ pub struct GenerateArgs {
 pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
     let config = AppConfig::load(&project_root.join("config")).context("load config")?;
 
-    let lang = resolve_lang(args.lang.as_deref(), &config)?;
-    let strategy = resolve_strategy(args.strategy.as_deref(), &config)?;
-    let max_length = args.max_length.unwrap_or(config.prompt.default_max_length);
-    let seed = if args.seed == 0 { config.prompt.default_seed } else { args.seed };
-
-    let theme = Theme::load(&config.themes_root(&project_root), &args.theme)
-        .with_context(|| format!("load theme '{}'", args.theme))?;
-    let mut pool = LangAwarePool::new();
-    pool.load_dir(lang, &config.tags_root(&project_root).join(lang.as_str()))
-        .with_context(|| "load tags")?;
-
-    let ctx = CombineContext {
-        theme,
-        lang,
-        strategy,
-        max_length,
-        seed,
-        project_root: project_root.clone(),
+    let opts = PipelineOpts {
+        theme_name: args.theme,
+        lang: args.lang,
+        strategy: args.strategy,
+        max_length: args.max_length,
+        seed: args.seed,
+        template: args.template,
+        no_send: args.no_send,
+        use_refine: args.refine,
     };
-    let out = combine(&ctx, &pool).context("combine prompt")?;
 
-    let agent = if args.refine { build_llm_agent(&config) } else { None };
-    let final_prompt = refine(agent.as_ref(), &out.prompt).await;
-    let refined = final_prompt != out.prompt;
+    let outcome = run_pipeline(&opts, &config, &project_root).await?;
 
-    if refined {
-        println!("[refined] {}", final_prompt);
+    if outcome.final_prompt != outcome.combine_prompt {
+        println!("[refined] {}", outcome.final_prompt);
     } else {
-        println!("{}", final_prompt);
+        println!("{}", outcome.final_prompt);
     }
-    for (cat, val) in &out.selected {
-        tracing::debug!(category = %cat, value = %val, "selected");
+    if let Some(p) = &outcome.image_path {
+        println!("{}", p.display());
     }
-
-    if args.no_send {
-        tracing::info!("--no-send specified, skipping ComfyUI submission");
-        return Ok(());
-    }
-
-    let template_path = config
-        .templates_root(&project_root)
-        .join(format!("{}.json", args.template));
-    if !template_path.exists() {
-        anyhow::bail!(
-            "template not found: {} (add templates/{}.json)",
-            template_path.display(),
-            args.template
-        );
-    }
-    let template_text = std::fs::read_to_string(&template_path)
-        .with_context(|| format!("read template {}", template_path.display()))?;
-    let mut workflow: Value = serde_json::from_str(&template_text)
-        .with_context(|| format!("parse template {}", template_path.display()))?;
-
-    let manifest_path = config
-        .templates_root(&project_root)
-        .join("MANIFEST.toml");
-    let manifest = Manifest::load(&manifest_path).with_context(|| {
-        format!(
-            "load MANIFEST.toml (required to map prompt/seed fields; see {})",
-            manifest_path.display()
-        )
-    })?;
-    let entry = manifest
-        .get(&args.template)
-        .ok_or_else(|| anyhow::anyhow!("template '{}' not in MANIFEST.toml", args.template))?;
-
-    let client_id = make_client_id();
-    {
-        let mut replacer = WorkflowReplacer::new(&mut workflow);
-        replacer
-            .replace_text(&entry.positive_prompt_node, &entry.positive_prompt_field, &final_prompt)
-            .with_context(|| "replace positive prompt in workflow")?;
-        if let (Some(node), Some(field)) = (
-            entry.negative_prompt_node.as_deref(),
-            entry.negative_prompt_field.as_deref(),
-        ) {
-            replacer
-                .replace_text(node, field, "")
-                .with_context(|| "replace negative prompt in workflow")?;
-        }
-        if let (Some(node), Some(field)) = (
-            entry.seed_node.as_deref(),
-            entry.seed_field.as_deref(),
-        ) {
-            let seed_value = if seed == 0 { chrono::Utc::now().timestamp() as i64 } else { seed as i64 };
-            replacer
-                .replace_int(node, field, seed_value)
-                .with_context(|| "replace seed in workflow")?;
-        }
-    }
-
-    let client = ComfyuiClient::new(&config.comfyui.url).context("init comfyui client")?;
-    let prompt_id = submit_prompt(&client, &workflow, &client_id)
-        .await
-        .with_context(|| "submit to comfyui")?;
-    tracing::info!(prompt_id = %prompt_id, "submitted to comfyui");
-
-    let history = poll_until_ready(
-        &client,
-        &prompt_id,
-        Duration::from_secs(config.comfyui.timeout_secs),
-        Duration::from_secs(config.comfyui.poll_interval_secs),
-    )
-    .await
-    .with_context(|| "poll comfyui")?;
-
-    let output_root = config.output_root(&project_root);
-    let path = download_and_save(&client, &history, &prompt_id, &final_prompt, &output_root)
-        .await
-        .with_context(|| "download and save image")?;
-
-    println!("{}", path.display());
     Ok(())
-}
-
-fn resolve_lang(s: Option<&str>, cfg: &AppConfig) -> Result<Lang> {
-    let raw = s.unwrap_or(&cfg.prompt.default_lang);
-    Lang::parse(raw).with_context(|| format!("unknown language: {raw}"))
-}
-
-fn resolve_strategy(s: Option<&str>, cfg: &AppConfig) -> Result<CombineStrategy> {
-    let raw = s.unwrap_or(&cfg.prompt.default_strategy);
-    CombineStrategy::parse(raw).with_context(|| format!("unknown strategy: {raw}"))
-}
-
-fn build_llm_agent(cfg: &AppConfig) -> Option<AgentKind> {
-    let llm = &cfg.llm;
-    if !llm.enabled {
-        tracing::info!("llm disabled in config; refine() will be identity");
-        return None;
-    }
-    let provider = match Provider::parse(&llm.provider) {
-        Some(p) => p,
-        None => {
-            tracing::warn!(provider = %llm.provider, "unknown llm provider, refine() will be identity");
-            return None;
-        }
-    };
-    let api_key = if llm.api_key.trim().is_empty() {
-        let env_var = match provider {
-            Provider::OpenAI => "OPENAI_API_KEY",
-            Provider::Anthropic => "ANTHROPIC_API_KEY",
-        };
-        match std::env::var(env_var) {
-            Ok(v) => v,
-            Err(_) => {
-                tracing::warn!(env_var, "no api key in config or env, refine() will be identity");
-                return None;
-            }
-        }
-    } else {
-        llm.api_key.clone()
-    };
-
-    let llm_cfg = LlmConfig {
-        provider,
-        model: llm.model.clone(),
-        api_key,
-        base_url: llm.base_url.clone(),
-    };
-    match build_agent(&llm_cfg) {
-        Ok(a) => Some(a),
-        Err(e) => {
-            tracing::warn!(error = %e, "build_agent failed, refine() will be identity");
-            None
-        }
-    }
 }

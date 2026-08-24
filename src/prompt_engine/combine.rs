@@ -1,9 +1,8 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-use thiserror::Error;
 
-use crate::tags::{Lang, LangAwarePool, TagStore};
+use crate::tags::{Lang, LangAwarePool};
 use crate::theme::Theme;
 
 use super::llm::{call, AgentKind};

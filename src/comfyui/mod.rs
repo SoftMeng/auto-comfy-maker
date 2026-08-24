@@ -8,9 +8,7 @@ pub mod download;
 pub mod prompt;
 pub mod workflow;
 
-pub use download::{download_image, DownloadError};
-pub use prompt::{poll_until_ready, submit_prompt, SubmitError};
-pub use workflow::{WorkflowReplacer, ReplaceError};
+pub use workflow::WorkflowReplacer;
 
 #[derive(Debug, Error)]
 pub enum ComfyuiError {

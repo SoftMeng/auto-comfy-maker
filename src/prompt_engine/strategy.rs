@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::tags::Lang;
 
 #[derive(Debug, Error)]
 pub enum PromptError {
