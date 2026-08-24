@@ -10,7 +10,7 @@ P0–P5 全部完成：
 - 子命令：`generate / batch / daemon / tags / config`
 - 测试：59 个单元测试全绿；`cargo clippy -- -D warnings` 零警告
 - CI：fmt / clippy / test / build / audit 五 job
-- 安全：`config.yaml` 在 `.gitignore`，提供 `config.yaml.example`
+- 安全：`config/local.toml` 在 `.gitignore`，无需 `config.yaml.example`（项目仅用 toml）
 
 ## v0.2.0（候选）
 
