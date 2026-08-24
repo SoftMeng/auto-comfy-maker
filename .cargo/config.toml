@@ -1,0 +1,7 @@
+[target.x86_64-unknown-linux-musl]
+# Linux 交叉编译说明：
+# 本机用 cargo-zigbuild（自带 zig 做 C 链接器）避免 homebrew rust vs rustup rust 的 sysroot 冲突。
+# 命令：cargo zigbuild --release --target x86_64-unknown-linux-musl
+# 依赖：cargo install cargo-zigbuild && brew install zig
+linker = "rust-lld"
+rustflags = ["-C", "target-feature=+crt-static"]
