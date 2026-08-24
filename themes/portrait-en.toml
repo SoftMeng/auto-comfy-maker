@@ -1,0 +1,17 @@
+[meta]
+id = "portrait-en"
+name = "Portrait (English)"
+description = "English variant of the portrait theme"
+lang = "en"
+version = "1.0"
+
+[order.fixed]
+subject = { file = "tags/en/subject.txt", count = 1 }
+style = { file = "tags/en/style.txt", count = 1 }
+
+[order.random]
+camera = { file = "tags/en/camera.txt", count = 1 }
+
+[generation]
+max_elements = 30
+max_length = 800

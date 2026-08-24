@@ -1,0 +1,15 @@
+[app]
+name = "auto-comfy-maker"
+log_level = "info"
+
+[prompt]
+default_lang = "zh"
+default_strategy = "comma"
+default_max_length = 800
+default_seed = 0
+
+[paths]
+themes_dir = "themes"
+tags_dir = "tags"
+output_dir = "output"
+logs_dir = "logs"
