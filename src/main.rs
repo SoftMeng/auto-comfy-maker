@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
@@ -27,8 +27,54 @@ enum Commands {
     Config(cli::ConfigArgs),
 }
 
+/// 解析"项目根目录"，即 themes / tags / templates / config 任一存在的祖先。
+///
+/// 解析顺序：
+/// 1. 环境变量 `AUTO_COMFY_PROJECT_ROOT`（部署场景下显式指定）；
+/// 2. 从 `current_exe()` 向上探测，找到任一标记目录的祖先；
+/// 3. 当前工作目录。
 fn project_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    if let Ok(env_root) = std::env::var("AUTO_COMFY_PROJECT_ROOT") {
+        let p = PathBuf::from(env_root);
+        if !p.as_os_str().is_empty() {
+            return p;
+        }
+    }
+
+    let markers = ["themes", "tags", "templates", "config"];
+
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(resolved) = locate_root_from(&exe, &markers) {
+            return resolved;
+        }
+    }
+    if let Ok(cwd) = std::env::current_dir() {
+        if let Some(resolved) = locate_root_from(&cwd, &markers) {
+            return resolved;
+        }
+    }
+
+    std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+}
+
+/// 从 `start` 出发，向上逐层查找包含任一 marker 子目录的祖先。
+fn locate_root_from(start: &Path, markers: &[&str]) -> Option<PathBuf> {
+    let mut cur: Option<&Path> = Some(start);
+    let mut visited: Vec<PathBuf> = Vec::new();
+    while let Some(dir) = cur {
+        for m in markers {
+            if dir.join(m).exists() {
+                return Some(dir.to_path_buf());
+            }
+        }
+        let next = dir.parent();
+        if next.is_none() || visited.iter().any(|p| p == dir) {
+            break;
+        }
+        visited.push(dir.to_path_buf());
+        cur = next;
+    }
+    None
 }
 
 #[tokio::main]
