@@ -14,7 +14,7 @@
 通过多维度标签组合 + 可选 LLM 优化 + Anima 模型深度适配，<br>
 实现高效可控的 AI 图像生成。
 
-[功能特性](#-功能特性) · [快速开始](#-快速开始) · [主题库](#-主题库) · [生成示例](#-生成示例) · [文档](#-文档)
+[功能特性](#-功能特性) · [快速开始](#-快速开始) · [主题库](#-主题库) · [文档](#-文档)
 
 </div>
 
@@ -276,74 +276,6 @@ tags/
 - ✅ **极简风格**：每个 prompt 必含 1girl + @Jang Chan + 极高跟
 - ✅ **持续生成友好**：搭配 `--task-interval` 适合长期批量生成
 - ✅ **明确语义**：用户知道每次会生成什么
-
----
-
-## 📸 生成示例
-
-> 以下示例均由 `anima-drawing-v5` 主题自动生成，使用相同的 Anima 模型与冲突规则。读者可复制下方 prompt 自行复现。
-
-### 🌸 民国女学生 · Scholar Daughter
-
-![民国女学生](docs/assets/examples/republic-era-student.jpg)
-
-```text
-masterpiece, best quality, score_7, safe, highres, absurdres,
-1girl, solo, focus on single character, dynasty era,
-mandarin square, song dynasty hangzhou west lake,
-scholar daughter, @ciloranko, medium hair, arms behind head
-```
-
-**主题**：`anima-drawing-v5`
-**关键标签**：`mandarin square` · `scholar daughter` · `@ciloranko`
-
----
-
-### 🌺 韩服角色 · Apprentice Geisha
-
-![韩服角色](docs/assets/examples/hanbok-character.jpg)
-
-```text
-masterpiece, best quality, score_7, safe, highres, absurdres,
-1girl, solo, focus on single character, goryeo dynasty,
-wide obi, edo yoshiwara pleasure quarter, apprentice geisha,
-@vagabond, hair down, seiza
-```
-
-**主题**：`anima-drawing-v5`
-**关键标签**：`wide obi` · `apprentice geisha` · `@vagabond`
-
----
-
-### 👠 高跟鞋角色 · Office Lady
-
-![高跟鞋](docs/assets/examples/high-heels-character.jpg)
-
-```text
-masterpiece, best quality, score_7, safe, highres, absurdres,
-1girl, solo, focus on single character, meiji era,
-office lady suit, fog, magical girl,
-@chinese artist, braided bun, standing
-```
-
-**主题**：`anima-drawing-v5`
-**关键标签**：`office lady suit` · `braided bun` · `@chinese artist`
-
----
-
-### 🏰 现代场景 · Cafe Owner
-
-![现代场景](docs/assets/examples/modern-scene.jpg)
-
-```text
-masterpiece, best quality, score_7, safe, highres, absurdres,
-1girl, solo, focus on single character, steampunk world,
-twelve-layer robe, himalayan foothill monastery, cafe owner,
-@ice, ponytail, cross-legged
-```
-
-**主题**：`anima-drawing-v5`
-**关键标签**：`twelve-layer robe` · `cafe owner` · `@ice`
 
 ---
 
