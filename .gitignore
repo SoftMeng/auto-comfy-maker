@@ -28,4 +28,5 @@ config/schedule.toml
 
 # 系统临时
 *.tmp
-*.bak
+*.bakconfig.yaml
+config.yaml
