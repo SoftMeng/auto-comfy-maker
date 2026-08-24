@@ -9,11 +9,12 @@
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Compatible-blueviolet.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Anima](https://img.shields.io/badge/Model-Anima_Ready-ff69b4.svg)]()
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-24_passing-success.svg)]()
 
 通过多维度标签组合 + 可选 LLM 优化 + Anima 模型深度适配，<br>
 实现高效可控的 AI 图像生成。
 
-[功能特性](#-功能特性) · [快速开始](#-快速开始) · [主题库](#-主题库) · [文档](#-文档) · [生成示例](#-生成示例)
+[功能特性](#-功能特性) · [快速开始](#-快速开始) · [主题库](#-主题库) · [生成示例](#-生成示例) · [文档](#-文档)
 
 </div>
 
@@ -25,27 +26,27 @@
 <tr>
 <td width="25%" align="center">
 
-### 🎯 精准控制
-多维度标签系统<br>
-精确描述图像细节
-</td>
-<td width="25%" align="center">
-
-### ⚡ 灵活高效
-CLI 三模式<br>
-单次 / 批量 / 定时
-</td>
-<td width="25%" align="center">
-
-### 🤖 Anima 适配
-原生支持 Danbooru 标签<br>
+### 🎯 Anima 深度适配
+完整支持 Danbooru 标签系统<br>
 + 艺术家（@）格式
+</td>
+<td width="25%" align="center">
+
+### ⚡ CLI 三模式
+单次（generate）<br>
+批量（batch）/ 定时（daemon）
+</td>
+<td width="25%" align="center">
+
+### 🎨 多主题系统
+TOML 配置化主题<br>
++ 冲突规则保证一致性
 </td>
 <td width="25%" align="center">
 
 ### 🛡️ 工程级质量
 配置分层 + 错误处理<br>
-+ 7 个单元测试通过
++ 24 个单元测试通过
 </td>
 </tr>
 </table>
@@ -82,13 +83,13 @@ cargo run -- generate --theme anima-drawing-v5 --lang en
 
 ## 📦 功能特性
 
-### 🎮 CLI 三模式
+### 🎮 CLI 三种模式
 
 <table>
 <tr>
-<th width="33%">单次生成</th>
-<th width="33%">批量生成</th>
-<th width="33%">定时任务</th>
+<th width="33%">单次生成 generate</th>
+<th width="33%">批量生成 batch</th>
+<th width="33%">定时任务 daemon</th>
 </tr>
 <tr>
 <td>
@@ -112,8 +113,16 @@ cargo run -- batch \
 <td>
 
 ```bash
+# 四种调度模式互斥使用
+# 周期模式
 cargo run -- daemon \
-  --schedule "0 */6 * * *"
+  --interval 6h --mode auto \
+  --theme anima-drawing-v5
+
+# 持续生成模式
+cargo run -- daemon \
+  --task-interval 5s --mode auto \
+  --theme anima-simple
 ```
 
 </td>
@@ -132,6 +141,15 @@ cargo run -- daemon \
 ✅ @sakimichan, @wlop, @chinese artist
 ✅ children's book illustration, watercolor illustration
 ```
+
+### ⏰ 调度器四种模式（互斥）
+
+| 模式 | 参数 | 行为 | 适用场景 |
+|------|------|------|----------|
+| **周期模式** | `--interval 5m` | 每 5 分钟触发一次 tick | 定时任务 |
+| **Cron 模式** | `--cron "0 */6 * * *"` | 定时调度 | 复杂时间规则 |
+| **指定时刻** | `--at "2026-09-01 09:00:00"` | 一次性触发 | 未来执行 |
+| **持续模式** | `--task-interval 5s` | 持续生成，任务后等 5s | 长期批量生成 |
 
 ### 📐 主题系统（Themes）
 
@@ -152,30 +170,31 @@ era = [
 
 ### 🏷️ 标签库（Tags）
 
-按类别组织的标签文件，最小词元，**支持中英文双语**：
+按类别组织的标签文件，**支持中英文双语**：
 
 ```
 tags/
-├── zh/                      # 中文标签
-│   ├── 时代.txt            # Tang Dynasty / Heian period
-│   ├── 职业.txt            # Profession / Social class
-│   ├── 性格.txt            # Personality
-│   ├── 世界观.txt          # World setting
-│   ├── 五官.txt            # Facial features
-│   ├── 发型.txt            # Hairstyle
-│   ├── 服装.txt            # Clothing by dynasty
-│   ├── 配饰.txt            # Accessories
-│   ├── 道具.txt            # Props & weapons
-│   ├── 背景.txt            # Background
-│   ├── 姿态.txt            # Pose
-│   ├── 漫画类型.txt        # Manga genre
-│   ├── 画风.txt            # Art style
-│   ├── 光线.txt            # Lighting
-│   ├── 色调.txt            # Color tone
-│   ├── 构图.txt            # Composition
-│   ├── 氛围.txt            # Vibe
-│   ├── 身体.txt            # Body features
-│   └── 妆容.txt            # Makeup
+├── zh/                      # 中文标签（18 个分类）
+│   ├── 时代.txt            # 时代和地区
+│   ├── 职业.txt            # 职业/阶层/角色
+│   ├── 性格.txt            # 性格特征
+│   ├── 世界观.txt          # 世界观设定
+│   ├── 五官.txt            # 五官特征
+│   ├── 发型.txt            # 发型
+│   ├── 表情.txt            # 微表情/情绪
+│   ├── 服装.txt            # 服装（按朝代分类）
+│   ├── 配饰.txt            # 配饰
+│   ├── 道具.txt            # 道具/武器
+│   ├── 背景.txt            # 背景
+│   ├── 姿态.txt            # 姿态
+│   ├── 漫画类型.txt        # 漫画类型
+│   ├── 画风.txt            # 画风
+│   ├── 光线.txt            # 光线
+│   ├── 色调.txt            # 色调
+│   ├── 构图.txt            # 构图
+│   ├── 氛围.txt            # 氛围
+│   ├── 身体.txt            # 身体特征
+│   └── 妆容.txt            # 妆容
 └── en/                      # English tags (Danbooru style)
     ├── quality.txt          # masterpiece, best quality, score_7
     ├── character_count.txt  # 1girl, solo
@@ -188,7 +207,23 @@ tags/
     ├── pose.txt             # standing, sitting
     ├── background.txt       # tang dynasty changan
     ├── art_style.txt        # children's book illustration
-    └── artists.txt          # @sakimichan, @wlop
+    ├── artists.txt          # @sakimichan, @wlop
+    ├── profession.txt       # 职业
+    ├── worldview.txt        # 世界观
+    ├── personality.txt      # 性格
+    ├── accessories.txt      # 配饰
+    ├── props.txt            # 武器/道具
+    └── _simple: anima-simple 主题专用
+        ├── quality_simple.txt
+        ├── character_count_simple.txt
+        ├── character_simple.txt
+        ├── artist_fixed.txt        # @Jang Chan 固定
+        ├── required_simple.txt     # 强制高跟鞋
+        ├── body_simple.txt
+        ├── pose_simple.txt
+        ├── view_simple.txt
+        ├── background_simple.txt
+        └── style_simple.txt
 ```
 
 ---
@@ -224,46 +259,62 @@ tags/
 
 | 主题 ID | 名称 | 说明 |
 |---------|------|------|
-| `anima-drawing-v5` | **Anima Drawing v5** | 原创亚洲女性角色（Anima 优化） |
+| `anima-drawing-v5` | **Anima Drawing v5** | 原创亚洲女性角色（Anima 深度适配） |
+| `anima-simple` | **Anima Simple** | 极简标签风格，强制 1girl + @Jang Chan + 极高跟 |
 | `portrait` | 人像主题 | 单人物像（中文） |
 | `portrait-en` | Portrait (English) | 英文变体 |
 
 ### 🌟 Anima Drawing v5 特色
 
-- ✅ **23 个角色维度**：时代、地域、性格、世界观、五官、发型、服装、配饰、道具、背景、姿态、艺术风格、艺术家等
-- ✅ **时代一致性规则**：避免跨时代服装混搭
-- ✅ **Danbooru 标签格式**：完全符合 Anima 官方要求
-- ✅ **冲突互斥组**：同组元素不会同时出现
+- ✅ **完全 Anima 官方格式**：[quality] [1girl] [character] [series] [artist] [general]
+- ✅ **时代一致性**：避免跨时代服装混搭（inter 互斥规则）
+- ✅ **丰富的 tags 库**：18 个中文 + 17 个英文分类文件
+- ✅ **BTreeMap 字段排序**：保证 prompt 元素顺序稳定
+
+### 🌟 Anima Simple 特色
+
+- ✅ **极简风格**：每个 prompt 必含 1girl + @Jang Chan + 极高跟
+- ✅ **持续生成友好**：搭配 `--task-interval` 适合长期批量生成
+- ✅ **明确语义**：用户知道每次会生成什么
 
 ---
 
 ## 📸 生成示例
 
-### 单角色作品
+<table>
+<tr>
+<td width="50%">
 
-<details>
-<summary><b>点击展开：示例 1 - 民国风女学生</b></summary>
+**Anima Drawing v5 - 民国女学生**
 
-**Prompt**：
-```
-1girl, solo, republic of china, k-pop stage outfit, masterpiece, best quality, score_7, safe, highres, absurdres, jeonju hanok village, geisha, @chinese artist, hair down, wide shot, grey hair
-```
+![民国女学生](output/2026-08-24/20260824-154737_4e6a05e2.jpg)
 
-![示例1](output/2026-08-24/20260824-154737_4e6a05e2.jpg)
+</td>
+<td width="50%">
 
-</details>
+**Anima Drawing v5 - 韩服角色**
 
-<details>
-<summary><b>点击展开：示例 2 - 宋代文艺女</b></summary>
+![韩服角色](output/2026-08-24/20260824-155657_b6d9cd64.jpg)
 
-**Prompt**：
-```
-Cambodian Angkor Wat, moat reflection at dawn, Song dynasty beizi (褙子) long vest over inner garment, Blue Archive character art, cute and colorful, Qing Dynasty early(1644-1796), Incheon Chinatown, Korea, last princess of a conquered kingdom, ...
-```
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-![示例2](output/2026-08-24/20260824-151956_9e921ed5.jpg)
+**Anima Simple - 高跟鞋角色**
 
-</details>
+![高跟鞋](output/2026-08-24/20260824-160736_1892bf0a.jpg)
+
+</td>
+<td width="50%">
+
+**Anima Drawing v5 - 现代场景**
+
+![现代场景](output/2026-08-24/20260824-151042_0236155d.jpg)
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -276,9 +327,41 @@ Cambodian Angkor Wat, moat reflection at dawn, Song dynasty beizi (褙子) long 
 | **CLI 参数表** | [docs/cli.md](./docs/cli.md) | 完整命令参数说明 |
 | **Prompt 生成引擎** | [docs/prompt-engine.md](./docs/prompt-engine.md) | 两阶段 Prompt 生成机制 |
 | **Workflow 模板** | [docs/workflow-template.md](./docs/workflow-template.md) | ComfyUI JSON 模板替换规则 |
-| **定时任务与周期** | [docs/scheduler.md](./docs/scheduler.md) | Cron 表达式与任务调度 |
+| **定时任务与周期** | [docs/scheduler.md](./docs/scheduler.md) | 调度模式与持久化 |
 | **配置文件结构** | [docs/config.md](./docs/config.md) | TOML 配置分层机制 |
 | **约束体系总览** | [docs/constraint/README.md](./docs/constraint/README.md) | 命名 / 结构 / 格式规范 |
+
+---
+
+## ⏰ 调度器示例
+
+### 周期模式
+
+```bash
+# 每 6 小时生成一张
+cargo run -- daemon --interval 6h --mode auto --theme anima-drawing-v5
+```
+
+### Cron 模式
+
+```bash
+# 每天 9:00 执行
+cargo run -- daemon --cron "0 9 * * *" --mode fixed --prompt "1girl, masterpiece"
+```
+
+### 持续生成模式
+
+```bash
+# 每张图后等 5s，持续生成
+cargo run -- daemon --task-interval 5s --mode auto --theme anima-simple
+```
+
+### 指定时刻
+
+```bash
+# 9 月 1 日 9 点执行
+cargo run -- daemon --at "2026-09-01 09:00:00" --mode fixed --prompt "..."
+```
 
 ---
 
@@ -286,18 +369,19 @@ Cambodian Angkor Wat, moat reflection at dawn, Song dynasty beizi (褙子) long 
 
 ### 🚧 当前阶段
 
-**项目初始化阶段** —— 核心架构已就绪，可扩展更多主题
+**核心功能已就绪**，可投入实际使用
 
 | 模块 | 状态 | 说明 |
 |------|------|------|
 | **核心框架** | ✅ | Rust + Tokio + ComfyUI 集成 |
-| **Anima 主题** | ✅ | Danbooru 标签 + 冲突规则 |
+| **Anima Drawing v5** | ✅ | Danbooru 标签 + 冲突规则 |
+| **Anima Simple** | ✅ | 极简风格主题 |
 | **中文 tags** | ✅ | 18 个分类文件 |
-| **英文 tags** | ✅ | 11 个 Danbooru 风格文件 |
+| **英文 tags** | ✅ | 17 个 Danbooru 风格文件 |
 | **ComfyUI 集成** | ✅ | HTTP 提交 + 轮询 + 下载 |
 | **LLM 优化** | ✅ | OpenAI / Anthropic 适配 |
-| **单元测试** | ✅ | 7 个 workflow 测试通过 |
-| **批量 / 定时** | 🚧 | 命令已就绪，待增强 |
+| **调度器** | ✅ | 4 种互斥模式（interval/cron/at/task-interval） |
+| **单元测试** | ✅ | 24 个全部通过 |
 
 ### 📈 路线图
 
