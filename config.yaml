@@ -1,0 +1,16 @@
+skill_dir: ./skills
+memory_dir: ./memory
+sys_prompt: ./AGENT_PROMPT.txt
+llm_provider: openai
+llm_config:
+  api_key: sk-0ae5d72ef50c42478e93a35ab6024cd5
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  chat_model: qwen3.5-flash
+  # Optional provider-specific params merged into the request body.
+  # Example: disable Qwen3.5 thinking.
+  extra_params:
+    enable_thinking: false
+
+comfyui:
+  url: http://192.168.31.8:7860/
+  image_dir: ./images/

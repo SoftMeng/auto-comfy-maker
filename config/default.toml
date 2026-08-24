@@ -13,6 +13,13 @@ url = "http://127.0.0.1:8188"
 poll_interval_secs = 2
 timeout_secs = 300
 
+[llm]
+enabled = false
+provider = "openai"        # openai | anthropic
+model = "gpt-4o-mini"
+api_key = ""               # 也可读环境变量 OPENAI_API_KEY / ANTHROPIC_API_KEY
+base_url = ""              # 可选
+
 [paths]
 themes_dir = "themes"
 tags_dir = "tags"

@@ -10,7 +10,7 @@ use crate::comfyui::prompt::{poll_until_ready, submit_prompt};
 use crate::comfyui::workflow::Manifest;
 use crate::comfyui::{make_client_id, ComfyuiClient, WorkflowReplacer};
 use crate::config::AppConfig;
-use crate::prompt_engine::{combine, CombineContext, CombineStrategy};
+use crate::prompt_engine::{build_agent, combine, refine, AgentKind, CombineContext, CombineStrategy, LlmConfig, Provider};
 use crate::tags::{Lang, LangAwarePool};
 use crate::theme::Theme;
 
@@ -36,6 +36,9 @@ pub struct GenerateArgs {
 
     #[arg(long)]
     pub no_send: bool,
+
+    #[arg(long)]
+    pub refine: bool,
 }
 
 pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
@@ -62,7 +65,15 @@ pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
     };
     let out = combine(&ctx, &pool).context("combine prompt")?;
 
-    println!("{}", out.prompt);
+    let agent = if args.refine { build_llm_agent(&config) } else { None };
+    let final_prompt = refine(agent.as_ref(), &out.prompt).await;
+    let refined = final_prompt != out.prompt;
+
+    if refined {
+        println!("[refined] {}", final_prompt);
+    } else {
+        println!("{}", final_prompt);
+    }
     for (cat, val) in &out.selected {
         tracing::debug!(category = %cat, value = %val, "selected");
     }
@@ -104,7 +115,7 @@ pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
     {
         let mut replacer = WorkflowReplacer::new(&mut workflow);
         replacer
-            .replace_text(&entry.positive_prompt_node, &entry.positive_prompt_field, &out.prompt)
+            .replace_text(&entry.positive_prompt_node, &entry.positive_prompt_field, &final_prompt)
             .with_context(|| "replace positive prompt in workflow")?;
         if let (Some(node), Some(field)) = (
             entry.negative_prompt_node.as_deref(),
@@ -141,7 +152,7 @@ pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
     .with_context(|| "poll comfyui")?;
 
     let output_root = config.output_root(&project_root);
-    let path = download_and_save(&client, &history, &prompt_id, &out.prompt, &output_root)
+    let path = download_and_save(&client, &history, &prompt_id, &final_prompt, &output_root)
         .await
         .with_context(|| "download and save image")?;
 
@@ -157,4 +168,48 @@ fn resolve_lang(s: Option<&str>, cfg: &AppConfig) -> Result<Lang> {
 fn resolve_strategy(s: Option<&str>, cfg: &AppConfig) -> Result<CombineStrategy> {
     let raw = s.unwrap_or(&cfg.prompt.default_strategy);
     CombineStrategy::parse(raw).with_context(|| format!("unknown strategy: {raw}"))
+}
+
+fn build_llm_agent(cfg: &AppConfig) -> Option<AgentKind> {
+    let llm = &cfg.llm;
+    if !llm.enabled {
+        tracing::info!("llm disabled in config; refine() will be identity");
+        return None;
+    }
+    let provider = match Provider::parse(&llm.provider) {
+        Some(p) => p,
+        None => {
+            tracing::warn!(provider = %llm.provider, "unknown llm provider, refine() will be identity");
+            return None;
+        }
+    };
+    let api_key = if llm.api_key.trim().is_empty() {
+        let env_var = match provider {
+            Provider::OpenAI => "OPENAI_API_KEY",
+            Provider::Anthropic => "ANTHROPIC_API_KEY",
+        };
+        match std::env::var(env_var) {
+            Ok(v) => v,
+            Err(_) => {
+                tracing::warn!(env_var, "no api key in config or env, refine() will be identity");
+                return None;
+            }
+        }
+    } else {
+        llm.api_key.clone()
+    };
+
+    let llm_cfg = LlmConfig {
+        provider,
+        model: llm.model.clone(),
+        api_key,
+        base_url: llm.base_url.clone(),
+    };
+    match build_agent(&llm_cfg) {
+        Ok(a) => Some(a),
+        Err(e) => {
+            tracing::warn!(error = %e, "build_agent failed, refine() will be identity");
+            None
+        }
+    }
 }

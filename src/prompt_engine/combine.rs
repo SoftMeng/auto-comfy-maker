@@ -6,6 +6,7 @@ use thiserror::Error;
 use crate::tags::{Lang, LangAwarePool, TagStore};
 use crate::theme::Theme;
 
+use super::llm::{call, AgentKind};
 use super::strategy::{CombineStrategy, Lcg, PromptError};
 
 #[derive(Debug, Clone)]
@@ -186,19 +187,26 @@ fn truncate(s: &str, max: usize) -> String {
     s[..cut].to_string()
 }
 
-pub fn resolve_tags_file(
-    project_root: &Path,
-    theme: &Theme,
-    cat_name: &str,
-) -> Result<PathBuf, PromptError> {
-    theme
-        .tags_file(project_root, cat_name)
-        .ok_or_else(|| PromptError::UnknownCategory(cat_name.into()))
-}
-
-fn stem_from_file(file: &str) -> Option<String> {
+pub fn stem_from_file(file: &str) -> Option<String> {
     let p = Path::new(file);
     p.file_stem().and_then(|s| s.to_str()).map(|s| s.to_string())
+}
+
+pub async fn refine(agent: Option<&AgentKind>, prompt: &str) -> String {
+    let Some(agent) = agent else {
+        return prompt.to_string();
+    };
+    match call(agent, prompt).await {
+        Ok(s) if !s.trim().is_empty() => s,
+        Ok(_) => {
+            tracing::warn!("llm returned empty response, falling back to combine output");
+            prompt.to_string()
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "llm refine failed, falling back to combine output");
+            prompt.to_string()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -243,6 +251,12 @@ mod tests {
             seed,
             project_root: PathBuf::from("/nonexistent"),
         }
+    }
+
+    #[tokio::test]
+    async fn refine_with_none_agent_returns_input() {
+        let out = refine(None, "original prompt").await;
+        assert_eq!(out, "original prompt");
     }
 
     #[test]
@@ -316,14 +330,9 @@ clothing = [["比基尼", "毛衣"]]
     #[test]
     fn truncate_when_too_long() {
         let dir = tempfile::tempdir().unwrap();
-        write_pool(
-            dir.path(),
-            Lang::Zh,
-            &[
-                ("a.txt", &["很长的元素".repeat(20).as_str()]),
-            ],
-        );
-        // 直接构造 store 即可
+        std::fs::create_dir_all(dir.path().join("zh")).unwrap();
+        let f = dir.path().join("zh").join("a.txt");
+        std::fs::write(&f, "很长的元素".repeat(20)).unwrap();
         let mut pool = LangAwarePool::new();
         pool.load_dir(Lang::Zh, &dir.path().join("zh")).unwrap();
 

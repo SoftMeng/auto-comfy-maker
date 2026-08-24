@@ -22,6 +22,8 @@ pub struct AppConfig {
     pub app: AppSection,
     pub prompt: PromptSection,
     pub comfyui: ComfyuiSection,
+    #[serde(default)]
+    pub llm: LlmSection,
     pub paths: PathsSection,
 }
 
@@ -44,6 +46,27 @@ pub struct ComfyuiSection {
     pub url: String,
     pub poll_interval_secs: u64,
     pub timeout_secs: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct LlmSection {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_provider")]
+    pub provider: String,
+    #[serde(default = "default_model")]
+    pub model: String,
+    #[serde(default)]
+    pub api_key: String,
+    #[serde(default)]
+    pub base_url: String,
+}
+
+fn default_provider() -> String {
+    "openai".to_string()
+}
+fn default_model() -> String {
+    "gpt-4o-mini".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -73,6 +96,7 @@ impl Default for AppConfig {
                 poll_interval_secs: 2,
                 timeout_secs: 300,
             },
+            llm: LlmSection::default(),
             paths: PathsSection {
                 themes_dir: "themes".to_string(),
                 tags_dir: "tags".to_string(),
