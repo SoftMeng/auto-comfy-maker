@@ -28,16 +28,17 @@ cargo run -- generate \
   --seed 42
 ```
 
-### `batch`（批量一次性）
+### `batch`（一次性随机组合 N 张）
 
 | 参数 | 短参 | 类型 | 默认 | 说明 |
 |------|------|------|------|------|
-| `--count` | `-n` | u32 | 10 | 总张数（必填语义） |
-| `--parallel` | `-p` | u8 | 1 | 并发请求数 |
+| `--count` | `-n` | u32 | 10 | 随机组合张数（必填语义） |
 | `--refine` | | bool | true | 是否 LLM 优化 |
 | `--lang` | `-l` | enum | `default_lang` | 输出语言：`zh` / `en` / `mixed` |
 
-**与 `generate -n` 的差异**：`batch` 不要求固定模板组合，按 tags 文件做**随机组合**；`generate -n` 使用同一组 tag 多次生成。
+**语义**：从 tags 各维度**随机抽取** N 组组合，每组生成 1 张图，串行执行后退出。**无并发参数**——并发属于调度层（`daemon`）的职责，不属于 batch 语义。
+
+**与 `generate -n` 的差异**：`generate -n` 用同一组 tags 生成 N 张（仅 seed 不同）；`batch -n` 用 N 组不同的随机 tags 各生成 1 张。
 
 ### `daemon`（定时任务）
 
@@ -46,11 +47,31 @@ cargo run -- generate \
 | `--interval` | `-i` | duration | — | 固定间隔（如 `30m`） |
 | `--cron` | | string | — | cron 表达式（与 interval 互斥） |
 | `--at` | | datetime[] | — | 具体时刻列表（ISO8601） |
+| `--mode` | `-m` | enum | — | `fixed`（固定 prompt）或 `auto`（自动随机组合 prompt） |
+| `--prompt` | | string | — | `mode=fixed` 时必填：固定 prompt 文本 |
+| `--prompt-file` | | path | — | `mode=fixed` 时可选：从文件加载 prompt（与 `--prompt` 互斥） |
 | `--count-per-tick` | | u32 | 1 | 每次触发生成张数 |
 | `--persist` | | path | `config/schedule.toml` | 任务持久化文件 |
 | `--lang` | `-l` | enum | `default_lang` | 输出语言：`zh` / `en` / `mixed` |
 
-**互斥规则**：`--interval` / `--cron` / `--at` 三选一，使用 clap `#[arg(conflicts_with)]` 强制。
+**互斥规则**（clap `#[arg(conflicts_with)]` / `requires_if` 强制）：
+- `--interval` / `--cron` / `--at` 三选一。
+- `--prompt` 与 `--prompt-file` 互斥。
+- `--mode = fixed` 必须同时提供 `--prompt` 或 `--prompt-file`。
+- `--mode = auto` **禁止**提供 `--prompt` / `--prompt-file`。
+
+**示例**：
+
+```bash
+# 固定 prompt：每小时生成同一段描述的不同变体
+cargo run -- daemon --interval 1h --mode fixed --prompt "长发美女在海边"
+
+# 自动 prompt：每小时随机组合 tags
+cargo run -- daemon --interval 1h --mode auto
+
+# 从文件加载 prompt
+cargo run -- daemon --interval 1h --mode fixed --prompt-file ./prompts/character.md
+```
 
 ### `tags`（标签管理）
 

@@ -59,17 +59,24 @@
 
 ```toml
 # config/schedule.toml（自动生成，gitignore）
+
+# mode = fixed（固定 prompt）
 [[jobs]]
 id = "550e8400-e29b-41d4-a716-446655440000"
 scheduled_at = "2026-09-01T09:00:00+08:00"
 status = "completed"
+mode = "fixed"
+prompt = "长发美女在海边"          # 直接保存 prompt 文本
 completed_at = "2026-09-01T09:00:01+08:00"
 output_path = "output/2026-09-01/img_xxx.png"
 
+# mode = auto（自动随机组合）
 [[jobs]]
 id = "..."
 scheduled_at = "2026-09-01T09:30:00+08:00"
 status = "pending"
+mode = "auto"
+# auto 模式不保存 prompt——每次从 tags 重新随机抽取
 ```
 
 **字段说明**：
@@ -77,6 +84,7 @@ status = "pending"
 - `status = "running"`：执行中（防止并发）。
 - `status = "completed"`：已完成。
 - `status = "failed"`：失败（保留记录，便于排查）。
+- `mode = "fixed" | "auto"`：与 daemon `--mode` 一致；`fixed` 时必填 `prompt` 字段，`auto` 时无 `prompt` 字段。
 
 ## 重试策略
 
