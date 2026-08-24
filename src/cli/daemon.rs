@@ -19,17 +19,24 @@ pub enum DaemonMode {
 
 #[derive(Debug, Args)]
 pub struct DaemonArgs {
-    /// 固定间隔（如 30s / 5m / 2h），与 --cron/--at 互斥
-    #[arg(long, short = 'i', conflicts_with_all = ["cron", "at"])]
+    /// tick 触发周期（如 5m / 2h），与 --cron/--at/--task-interval 互斥。
+    /// 计时从 tick 完成开始，确保每个 tick 至少间隔该时间。
+    #[arg(long, short = 'i', conflicts_with_all = ["cron", "at", "task_interval"])]
     pub interval: Option<String>,
 
-    /// cron 表达式（分 时 日 月 周），与 --interval/--at 互斥
-    #[arg(long, conflicts_with_all = ["interval", "at"])]
+    /// cron 表达式（分 时 日 月 周），与 --interval/--at/--task-interval 互斥
+    #[arg(long, conflicts_with_all = ["interval", "at", "task_interval"])]
     pub cron: Option<String>,
 
-    /// 具体时刻（RFC3339 或 YYYY-MM-DD HH:MM:SS），可多次；与 --interval/--cron 互斥
-    #[arg(long = "at", value_name = "TIME", conflicts_with_all = ["interval", "cron"])]
+    /// 具体时刻（RFC3339 或 YYYY-MM-DD HH:MM:SS），可多次；与 --interval/--cron/--task-interval 互斥
+    #[arg(long = "at", value_name = "TIME", conflicts_with_all = ["interval", "cron", "task_interval"])]
     pub at: Vec<String>,
+
+    /// 任务之间等待的间隔（如 5s / 1m），持续生成模式。
+    /// 与 --interval/--cron/--at 互斥：使用本参数时持续生成，无固定周期。
+    /// 任务完成后等指定时长，然后立即执行下一个。
+    #[arg(long, value_name = "DURATION", conflicts_with_all = ["interval", "cron", "at"])]
+    pub task_interval: Option<String>,
 
     #[arg(long, short = 'm')]
     pub mode: DaemonMode,
@@ -69,12 +76,20 @@ enum Trigger {
     Interval(Duration),
     Cron(crate::scheduler::CronExpr),
     At(Vec<chrono::DateTime<chrono::Local>>),
+    /// 持续模式：每完成一个任务后等待指定时长，然后立即执行下一个
+    /// （无固定周期，靠 --task-interval 控制节奏）
+    Continuous(Duration),
 }
 
 pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     let config = AppConfig::load(&project_root.join("config")).context("load config")?;
 
     let trigger = build_trigger(&args)?;
+    println!(
+        "daemon started: mode={:?}, trigger={}",
+        args.mode,
+        describe_trigger(&trigger)
+    );
 
     let fixed_prompt = match args.mode {
         DaemonMode::Fixed => Some(load_fixed_prompt(&args)?),
@@ -140,6 +155,8 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     Trigger::At(_) => {
                         !at_queue.is_empty() && now >= at_queue[0]
                     }
+                    // Continuous 模式：每秒都触发（节奏由 run_tick 内的 sleep 控制）
+                    Trigger::Continuous(_) => true,
                 };
 
                 if !should_fire {
@@ -153,10 +170,10 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     }
                 }
 
-                // interval 模式记录上次触发时间（cron 按 1s 轮询匹配）
-                if let Trigger::Interval(_) = &trigger {
-                    last_fired = Some(("interval".to_string(), now));
-                }
+                let task_interval = match &trigger {
+                    Trigger::Continuous(d) => Some(*d),
+                    _ => None,
+                };
 
                 if let Err(e) = run_tick(
                     &args,
@@ -165,11 +182,18 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     &persist_path,
                     fixed_prompt.as_deref(),
                     now,
+                    task_interval,
                 )
                 .await
                 {
                     tracing::error!(error = %e, "tick failed");
                     eprintln!("tick failed: {:#}", e);
+                }
+
+                // interval 模式：在 tick 完成后记录，避免任务耗时被计入
+                // （这样 --interval 5m 表示"从 tick 完成到下一个 tick 触发至少 5m"）
+                if let Trigger::Interval(_) = &trigger {
+                    last_fired = Some(("interval".to_string(), chrono::Local::now()));
                 }
 
                 if at_queue.is_empty() {
@@ -193,10 +217,20 @@ async fn run_tick(
     persist_path: &std::path::Path,
     fixed_prompt: Option<&str>,
     now: chrono::DateTime<chrono::Local>,
+    task_interval: Option<Duration>,
 ) -> Result<()> {
     let tick_id = format!("tick-{}", now.format("%Y%m%d-%H%M%S"));
 
     for i in 0..args.count_per_tick {
+        // 任务之间等待：每个任务完成后都等待 task-interval
+        // （包括第一个 → 第二个、第二个 → 第三个、...）
+        if i > 0 {
+            if let Some(d) = task_interval {
+                println!("waiting {:?} before next task...", d);
+                tokio::time::sleep(d).await;
+            }
+        }
+
         let record = JobRecord {
             id: format!("{tick_id}-{i}"),
             scheduled_at: now.to_rfc3339(),
@@ -268,6 +302,11 @@ async fn run_tick(
 }
 
 fn build_trigger(args: &DaemonArgs) -> Result<Trigger> {
+    if let Some(iv) = &args.task_interval {
+        return Ok(Trigger::Continuous(
+            crate::scheduler::interval::parse_duration(iv)?,
+        ));
+    }
     if let Some(iv) = &args.interval {
         return Ok(Trigger::Interval(
             crate::scheduler::interval::parse_duration(iv)?,
@@ -283,7 +322,7 @@ fn build_trigger(args: &DaemonArgs) -> Result<Trigger> {
         }
         return Ok(Trigger::At(times));
     }
-    anyhow::bail!("must specify one of --interval / --cron / --at");
+    anyhow::bail!("must specify one of --interval / --cron / --at / --task-interval");
 }
 
 fn describe_trigger(t: &Trigger) -> String {
@@ -291,6 +330,7 @@ fn describe_trigger(t: &Trigger) -> String {
         Trigger::Interval(d) => format!("every {:?}", d),
         Trigger::Cron(e) => format!("cron '{}'", e),
         Trigger::At(v) => format!("at {} time(s)", v.len()),
+        Trigger::Continuous(d) => format!("continuous, task-interval {:?}", d),
     }
 }
 
@@ -320,5 +360,13 @@ mod tests {
     fn describe_trigger_formats() {
         let t = Trigger::Interval(Duration::from_secs(60));
         assert!(describe_trigger(&t).contains("60s"));
+    }
+
+    #[test]
+    fn parse_task_interval() {
+        let d = crate::scheduler::interval::parse_duration("10s").unwrap();
+        assert_eq!(d, Duration::from_secs(10));
+        let d = crate::scheduler::interval::parse_duration("1m").unwrap();
+        assert_eq!(d, Duration::from_secs(60));
     }
 }
