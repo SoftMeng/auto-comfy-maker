@@ -110,14 +110,63 @@ impl Default for AppConfig {
 
 impl AppConfig {
     pub fn load(config_dir: &Path) -> Result<Self, ConfigError> {
-        let path = config_dir.join("default.toml");
-        if !path.exists() {
-            return Ok(Self::default());
-        }
-        let text = std::fs::read_to_string(&path)?;
-        let cfg: AppConfig = toml::from_str(&text)?;
+        let mut cfg = if config_dir.join("default.toml").exists() {
+            let text = std::fs::read_to_string(config_dir.join("default.toml"))?;
+            toml::from_str(&text)?
+        } else {
+            Self::default()
+        };
+        cfg.merge_local(config_dir)?;
         cfg.validate()?;
         Ok(cfg)
+    }
+
+    /// 以"段（section）为单位"合并 local.toml：local 中存在的段整体覆盖 default。
+    fn merge_local(&mut self, config_dir: &Path) -> Result<(), ConfigError> {
+        let local_path = config_dir.join("local.toml");
+        if !local_path.exists() {
+            return Ok(());
+        }
+        let text = std::fs::read_to_string(&local_path)?;
+        let local: toml::Value = toml::from_str(&text)?;
+
+        let mut base: toml::Value = toml::Value::try_from(&*self)
+            .map_err(|e| ConfigError::Invalid {
+                field: "(serialize)".into(),
+                value: "AppConfig".into(),
+                reason: e.to_string(),
+            })?;
+
+        if let Some(local_table) = local.as_table() {
+            let base_table = base
+                .as_table_mut()
+                .ok_or_else(|| ConfigError::Invalid {
+                    field: "(root)".into(),
+                    value: "(non-table)".into(),
+                    reason: "local.toml must be a TOML table at root".into(),
+                })?;
+            for (key, local_val) in local_table {
+                // 段级 = 字段级合并：local 段中只列了要覆盖的字段
+                if let (Some(base_val), Some(local_inner)) =
+                    (base_table.get_mut(key), local_val.as_table())
+                {
+                    if let Some(base_inner) = base_val.as_table_mut() {
+                        for (k, v) in local_inner {
+                            base_inner.insert(k.clone(), v.clone());
+                        }
+                        continue;
+                    }
+                }
+                // 段不存在 / 类型不匹配：整段覆盖
+                base_table.insert(key.clone(), local_val.clone());
+            }
+        }
+
+        let merged: AppConfig = base
+            .try_into()
+            .map_err(|e: toml::de::Error| ConfigError::Parse(e))?;
+        *self = merged;
+        Ok(())
     }
 
     pub fn validate(&self) -> Result<(), ConfigError> {
@@ -190,6 +239,87 @@ mod tests {
     fn load_from_missing_dir_returns_default() {
         let cfg = AppConfig::load(Path::new("/nonexistent/dir")).expect("fallback default");
         assert_eq!(cfg.prompt.default_lang, "zh");
+    }
+
+    #[test]
+    fn local_overrides_default_section() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("default.toml"),
+            r#"
+[app]
+name = "auto-comfy-maker"
+log_level = "info"
+
+[prompt]
+default_lang = "zh"
+default_strategy = "comma"
+default_max_length = 800
+default_seed = 0
+
+[comfyui]
+url = "http://default-host:8188"
+poll_interval_secs = 2
+timeout_secs = 300
+
+[llm]
+enabled = false
+provider = "openai"
+model = "gpt-4o-mini"
+
+[paths]
+themes_dir = "themes"
+tags_dir = "tags"
+output_dir = "output"
+logs_dir = "logs"
+templates_dir = "templates"
+"#,
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join("local.toml"),
+            r#"
+[comfyui]
+url = "http://user-host:9999"
+"#,
+        )
+        .unwrap();
+
+        let cfg = AppConfig::load(dir.path()).expect("load");
+        assert_eq!(cfg.comfyui.url, "http://user-host:9999");
+        // 未覆盖的段保持 default
+        assert_eq!(cfg.comfyui.poll_interval_secs, 2);
+        assert_eq!(cfg.prompt.default_lang, "zh");
+    }
+
+    #[test]
+    fn local_only_overrides_present_sections() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("local.toml"),
+            r#"
+[prompt]
+default_lang = "en"
+"#,
+        )
+        .unwrap();
+
+        let cfg = AppConfig::load(dir.path()).expect("load with no default");
+        // 没有 default.toml → fallback default；local 覆盖 prompt
+        assert_eq!(cfg.prompt.default_lang, "en");
+        assert_eq!(cfg.app.name, "auto-comfy-maker"); // default 值
+    }
+
+    #[test]
+    fn local_rejects_invalid_toml() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("local.toml"),
+            "this is not valid toml [[[",
+        )
+        .unwrap();
+        let r = AppConfig::load(dir.path());
+        assert!(r.is_err());
     }
 
     #[test]
