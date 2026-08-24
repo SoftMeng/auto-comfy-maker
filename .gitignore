@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Rust / Cargo
+target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# 本项目运行时（不进仓库）
+output/
+logs/
+config/local.toml
+config/schedule.toml
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 环境变量与密钥
+.env
+.env.local
+
+# 系统临时
+*.tmp
+*.bak
