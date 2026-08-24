@@ -21,7 +21,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 3. **配置分层**：`config/default.toml` 提交进仓库，`config/local.toml` 进 `.gitignore`，CLI 与环境变量覆盖最终值。
 4. **错误传递用 `Result<T, E>`**：禁止 `unwrap()` 进入业务路径；库代码使用 `thiserror`，二进制入口使用 `anyhow`。
 5. **CLI 命令三态明确**：`generate` 单次、`batch` 批量、`daemon` 定时，三者互不重叠，参数子集互不耦合。
-6. **tags 文件即真相**：标签纯文本存储，每行一条；不引入数据库或索引文件，运行时按需加载到 `IndexSet<String>`。
+6. **tags 是元素库、theme 是配方、prompt 是组合结果**：tags 目录只放最小词元；theme 声明式规则放在 `themes/*.toml`；prompt 由 `prompt_engine` 解释器按 theme 从 tags 池中组合生成。**三者职责严格分离**。
 
 ## 4. 项目结构
 
@@ -32,7 +32,8 @@ auto-comfy-maker/
 ├── Cargo.toml                 # Rust 依赖与构建
 ├── config/                    # 配置（default.toml 提交；local.toml gitignore）
 ├── templates/                 # ComfyUI workflow JSON 模板
-├── tags/                      # 多维度 prompt 标签（每文件一个维度）
+├── tags/                      # 元素库（最小词元，按语言分目录；不是 prompt 本身）
+├── themes/                    # 主题/配方（声明式规则：如何把 tags 组合成 prompt）
 ├── src/                       # Rust 源码
 │   ├── cli/                   # clap 命令定义
 │   ├── config/                # 配置加载

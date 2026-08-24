@@ -1,8 +1,22 @@
-# Prompt 两阶段生成
+# Prompt 生成：从 tags 到 prompt
 
 ## 结论
 
-prompt 生成是**两阶段流水线**：阶段一 `combine()` 是确定性纯函数（多维度 tag 拼接）；阶段二 `refine()` 是可选的 LLM 优化。两者解耦，`refine()` 失败时必须**回退到阶段一结果**，而非整体任务失败。
+**tags ≠ prompt**。本项目的概念边界严格分离：
+
+| 概念 | 是什么 | 在哪里 |
+|------|--------|--------|
+| **tag** | 元素（最小词元） | `tags/{lang}/{dim}.txt` |
+| **theme** | 元素的组织规则 | `themes/{name}.toml` |
+| **prompt** | theme + tags 经引擎组合的**最终文本** | 运行期生成 |
+
+prompt 生成是**两阶段流水线**：
+- 阶段一 `combine(theme, tags)` 是确定性纯函数（按 theme 规则从 tags 选元素并组合）。
+- 阶段二 `refine(prompt)` 是可选的 LLM 优化。
+
+两者解耦，`refine()` 失败时必须**回退到阶段一结果**，而非整体任务失败。
+
+**关键原则**：`prompt_engine` 是**通用解释器，零业务逻辑**——所有"如何组合"的规则都来自 theme 文件。
 
 ## 阶段一：combine（确定性拼接）
 
@@ -10,34 +24,44 @@ prompt 生成是**两阶段流水线**：阶段一 `combine()` 是确定性纯�
 
 ```rust
 pub struct CombineContext {
-    pub lang: Lang,                          // 输出语言（zh / en / mixed）
-    pub dimensions: Vec<DimensionSelection>, // 用户选定的维度
-    pub random_pool: LangAwarePool,          // 按语言组织的可选维度
-    pub strategy: CombineStrategy,
-    pub max_length: usize, // 字符上限，避免 ComfyUI 截断
+    pub theme: Theme,                       // 主题/配方：定义哪些类目必选/随机/可选/冲突
+    pub tags: LangAwarePool,                // 元素池：tags/{lang}/* 加载的结果
+    pub strategy: CombineStrategy,          // 拼接策略
+    pub max_length: usize,                  // 字符上限
+    pub seed: u64,                          // 随机种子（可复现）
+}
+
+pub struct Theme {
+    pub meta: ThemeMeta,                    // id / name / lang / version
+    pub order_fixed: Vec<CategoryRef>,      // 必选 + 固定顺序
+    pub order_random: Vec<CategoryRef>,     // 必选 + 类目按声明顺序
+    pub order_optional: Vec<(CategoryRef, f32)>, // 按 probability 可选
+    pub conflicts: HashMap<String, Vec<Vec<String>>>, // 类目 → 互斥元素组
+    pub generation: GenerationOptions,      // max_elements / max_length
+}
+
+pub struct CategoryRef {
+    pub category: String,                   // 类目名（发型 / 首饰 / 服装 / 场景 / ...）
+    pub file: PathBuf,                      // 对应 tags/{lang}/{file}.txt
+    pub count: usize,                       // 最少选几个
+    pub max: usize,                         // 最多选几个
+}
+
+pub struct LangAwarePool {
+    pub zh: HashMap<String, Vec<String>>,   // 维度名 → 元素列表
+    pub en: HashMap<String, Vec<String>>,
 }
 
 pub enum Lang {
     Zh,
     En,
-    Mixed, // 中英同维拼接，依赖 LLM refine 兜底
-}
-
-pub struct LangAwarePool {
-    pub zh: HashMap<String, Vec<String>>,
-    pub en: HashMap<String, Vec<String>>,
-}
-
-pub enum DimensionSelection {
-    Fixed { name: String, value: String },   // 用户指定（值需与 lang 匹配）
-    Random { name: String },                  // 从 lang 对应池随机抽
-    Skipped(String),                          // 跳过
+    Mixed,
 }
 
 pub enum CombineStrategy {
     Comma,       // 英文逗号 + 空格
     Newline,     // 换行（适合结构化 prompt）
-    Natural,     // 英文句式（"with long hair, wearing necklace"）
+    Natural,     // 英文句式
 }
 ```
 
@@ -48,33 +72,40 @@ pub enum CombineStrategy {
 ### 算法
 
 ```
-1. 根据 ctx.lang 选定主池（zh / en / mixed）
-2. 遍历 dimensions
-3. 对每个维度：
-   - Fixed → 直接取 value（Mixed 时要求 value 同时含中英）
-   - Random → 从对应池随机抽一条
-     · Mixed 时：先抽 zh 再抽 en，二者顺序拼接
-   - Skipped → 忽略
-4. 按 strategy 拼接
-5. 若超过 max_length，按 strategy 的优先级截断（先丢 random 维度）
-6. 返回
+1. 加载 theme，按 theme.meta.lang 选定主池（zh / en / mixed）
+2. 遍历 theme.order_fixed：
+   - 从对应池取 count 个元素（保持顺序）
+3. 遍历 theme.order_random：
+   - 高优先级类目（hair / camera）按声明顺序
+   - 其他类目先随机打乱
+   - 每个类目取 [count, max] 个元素
+4. 验证 theme.compatibility.conflicts：
+   - 冲突时回溯替换该元素（不重选整个类目）
+5. 遍历 theme.order_optional：
+   - 按 probability 决定是否参与；参与则取 count 个
+6. 按 strategy 拼接
+7. 若超过 max_length，按优先级截断：
+   - 先丢 optional 元素
+   - 再丢 random 元素
+   - 最后丢 fixed 元素（保留至少 1）
+8. 返回最终 prompt
 ```
 
 ### 语言行为表
 
-| Lang | 加载路径 | 输出策略 | LLM refine 要求 |
-|------|---------|---------|----------------|
-| `Zh` | `tags/zh/` | 仅中文 tag 拼接 | 可选 |
-| `En` | `tags/en/` | 仅英文 tag 拼接 | 可选 |
-| `Mixed` | `tags/zh/` + `tags/en/` | 中英同维拼接（zh tag 在前、en tag 在后） | **强制**（无 LLM 则回退到 zh） |
+| theme.meta.lang | 加载路径 | 输出策略 | LLM refine 要求 |
+|----------------|---------|---------|----------------|
+| `zh` | `tags/zh/` | 仅中文元素组合 | 可选 |
+| `en` | `tags/en/` | 仅英文元素组合 | 可选 |
+| `mixed` | `tags/zh/` + `tags/en/` | 同 theme 类目内 zh 在前 en 在后拼接 | **强制**（无 LLM 则回退到 zh） |
 
 **为什么 Mixed 强制 LLM**：中英拼接后是机械拼接，自然度差；没有 LLM refine 时反而不如单语言。`refine()` 失败时直接回退到 zh 单语言结果（而非混合输出）。
 
 ### 纯函数保证
 
-- 不读取全局状态（除 `random_pool`）。
+- 不读取全局状态（除传入的 `theme` / `tags`）。
 - 不发起网络请求。
-- 同输入必同输出（除 Random 维度）。
+- 同输入（含相同 `seed`）必同输出。
 
 ## 阶段二：refine（LLM 优化）
 
@@ -118,6 +149,31 @@ if refine().is_err():
 ### 决策 3：max_length 默认 800
 
 **为什么**：SDXL 推荐 prompt 长度 ≤ 77 token；中文混合英文约 800 字符。超过即截断 random 维度，保留 fixed。
+
+## 主题流程
+
+```
+┌────────────┐     ┌────────────┐     ┌────────────┐
+│ tags/{lang}│     │ themes/    │     │            │
+│ /*txt      │ ──▶ │ {name}.toml│ ──▶ │  combine() │
+│ (元素数据)  │     │ (组合规则)  │     │            │
+└────────────┘     └────────────┘     └─────┬──────┘
+                                            │ 初步 prompt
+                                            ▼
+                                      ┌────────────┐
+                                      │  refine()  │ (可选，LLM)
+                                      └─────┬──────┘
+                                            │  最终 prompt
+                                            ▼
+                                      ComfyUI
+```
+
+**清晰的责任划分**：
+- **tags 目录**：只放"什么元素可用"，不知道如何组合。
+- **themes 目录**：只放"如何组合"，不重复元素内容。
+- **combine()**：通用解释器，按 theme 规则从 tags 池中选取元素。
+
+加新主题 = 新增 `themes/<name>.toml` + 准备 `tags/{lang}/*` 文件，**无需改 Rust 代码**。
 
 ## tags 文件结构（按语言切目录）
 

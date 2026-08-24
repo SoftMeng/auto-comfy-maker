@@ -1,19 +1,31 @@
 # tags 目录
 
-本目录存储**多语言、按维度划分**的 prompt 标签。语言是**一级目录**，维度是**二级目录**。
+本目录存储**元素（elements / tags）**——是组成 prompt 的**最小词元**，不是 prompt 本身。
+
+## 关键概念
+
+| 概念 | 是什么 | 在哪里 |
+|------|--------|--------|
+| **tag（元素）** | 单一词条，如"长发"、"项链"、"海边" | `tags/{lang}/{dim}.txt` |
+| **theme（主题/配方）** | 元素的组织规则：哪些必选、哪些随机、哪些互斥、顺序如何 | `themes/{name}.toml` |
+| **prompt（提示词）** | theme 引用 tags 元素，经引擎组合后的**最终文本** | 运行期生成 |
+
+**关系**：`tags + theme → engine → prompt`
+
+`tags/` 是数据，`themes/` 是规则，`prompt_engine` 是把两者组合的通用解释器（**零业务逻辑**，所有规则来自 theme）。
 
 ## 目录结构
 
 ```
 tags/
-├── zh/                       # 中文 tags
+├── zh/                       # 中文元素
 │   ├── 发型.txt
 │   ├── 首饰.txt
 │   ├── 场景.txt
 │   ├── 服装.txt
 │   ├── 表情.txt
 │   └── 构图.txt
-└── en/                       # 英文 tags（Stable Diffusion / SDXL / Flux 友好）
+└── en/                       # 英文元素（SDXL / Flux 友好）
     ├── hairstyle.txt
     ├── jewelry.txt
     ├── scene.txt
@@ -21,12 +33,6 @@ tags/
     ├── expression.txt
     └── composition.txt
 ```
-
-## 为什么按语言切目录
-
-- **物理隔离**：中英文是两种独立的词汇表，物理分层让意图自现。
-- **零代码扩展**：新增 `ja/` `ko/` 等只需新建目录。
-- **git diff 清晰**：跨语言改动不互相干扰，便于多人协作。
 
 ## 文件格式
 
@@ -40,13 +46,16 @@ tags/
 盘发
 ```
 
-```
-# English example (tags/en/hairstyle.txt)
-long hair
-short hair
-curly hair
-updo
-```
+## 元素分类（type）
+
+每个维度文件可声明分类类型（写入文件名后缀或 toml 侧车文件，**本项目首版用文件后缀**）：
+
+- `simple`：每个元素独立可选，无冲突。默认。
+- `grouped`：元素分组，组内互斥（`{hair.short}.<file>.toml`）
+- `optional`：以概率被选中（`{hair.optional}.<file>.toml`）
+- `nested`：嵌套子分类（如 `clothing.top/bottom/shoes`）
+
+**首版仅实现 `simple`**，其他类型在 theme 中描述。
 
 ## 加载机制
 
@@ -65,24 +74,22 @@ updo
 中文用户：
 
 ```bash
-cargo run -- generate --lang zh
+cargo run -- generate --lang zh --theme portrait
 ```
 
 英文用户 / 用 SDXL / Flux：
 
 ```bash
-cargo run -- generate --lang en
+cargo run -- generate --lang en --theme portrait
 ```
 
 ### 混合模式（高级）
 
 ```bash
-cargo run -- generate --lang mixed
+cargo run -- generate --lang mixed --theme portrait
 ```
 
-**行为**：阶段一 `combine()` 把中英文 tags **按维度拼接**（同一维度内 zh tag 在前、en tag 在后），阶段二 `refine()` 调用 LLM 重新组织为自然语言。
-
-**风险**：LLM 可能丢失部分维度。**仅在配置 LLM 时使用**。
+**行为**：theme 同时引用 `zh` 与 `en` 元素；engine 按 theme 规则组合（多用于精细主题）。
 
 ## 默认语言
 
@@ -98,19 +105,33 @@ default_lang = "zh"    # 可选: zh | en | mixed
 ## 添加新语言
 
 1. 在 `tags/` 下新建 `<lang>/` 目录。
-3. 在该目录下添加 `<dimension>.txt` 文件。
-2. 无需改 Rust 代码（自动发现）。
-3. CLI 使用 `--lang <lang>` 即可。
+2. 在该目录下添加 `<dimension>.txt` 文件。
+3. 无需改 Rust 代码（自动发现）。
+4. CLI 使用 `--lang <lang>` 即可。
 
 ## 迁移指引（从旧版本）
 
-旧版本使用单层目录（如 `tags/发型.txt`）。迁移步骤：
+旧版本把 `tags/` 内容直接当作"提示词"使用。迁移步骤：
 
-```bash
-mkdir -p tags/zh
-git mv tags/发型.txt tags/zh/
-git mv tags/首饰.txt tags/zh/
-# ... 其他维度
+- 把 `tags/发型.txt`（如果含完整句子）拆成最小词元（如"长发"、"短发"）。
+- 在 `themes/<主题>.toml` 中声明如何使用这些词元。
+
+## 错误示例（曾经犯的错）
+
+```text
+# ❌ 错误：tag 不应该是完整句子
+tags/zh/角色.txt:
+  一位长发美女在海边,穿着白裙,面带微笑,3D 渲染风格
 ```
 
-如有英文版（`tags/hairstyle.txt`），迁移到 `tags/en/`。
+```text
+# ✅ 正确：tag 是最小词元
+tags/zh/角色.txt:
+  3D 渲染风格
+  日系动漫风格
+  写实风格
+  油画风格
+  赛博朋克风格
+```
+
+组合成完整 prompt 的工作由 **theme** 负责，而非由 tag 自身承担。
