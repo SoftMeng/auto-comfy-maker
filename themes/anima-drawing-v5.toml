@@ -1,0 +1,94 @@
+[meta]
+id = "anima-drawing-v5"
+name = "Anima Drawing v5 - Original Asian Female Character"
+description = "原创亚洲女性角色设计，使用 Anima 官方推荐的 Danbooru 标签格式。"
+version = "5.0"
+lang = "en"
+
+# ============================================================
+# 字段名前缀（按 Anima 推荐顺序强制排序）：
+#   01_quality        = 质量前缀（masterpiece, best quality...）
+#   02_1girl          = 1girl, solo
+#   03_character      = archetype (角色身份)
+#   04_series         = series (可空)
+#   05_artist         = 艺术家 (@xxx)
+#   06_era            = 时代
+#   07_clothing       = 服装
+#   08_background     = 背景
+#   09_hair           = 头发
+#   10_pose           = 姿态
+# ============================================================
+
+# ============================================================
+# 必选元素（Anima 推荐顺序）
+# ============================================================
+
+[order.fixed]
+# 1. 质量前缀
+01_quality = { file = "tags/en/quality.txt", count = 1 }
+# 2. 1girl, solo
+02_1girl = { file = "tags/en/character_count.txt", count = 1 }
+# 6. 时代
+06_era = { file = "tags/en/era_only.txt", count = 1 }
+# 7. 服装
+07_clothing = { file = "tags/en/clothing.txt", count = 1 }
+# 8. 背景
+08_background = { file = "tags/en/background.txt", count = 1 }
+
+# ============================================================
+# 随机元素
+# ============================================================
+
+[order.random]
+# 3. 角色身份
+03_character = { file = "tags/en/archetype.txt", count = 1 }
+# 5. 艺术家
+05_artist = { file = "tags/en/artists.txt", count = 1 }
+# 9. 头发
+09_hair = { file = "tags/en/hairstyle.txt", count = 1 }
+# 10. 姿态
+10_pose = { file = "tags/en/pose.txt", count = 1 }
+
+# ============================================================
+# 生成选项
+# ============================================================
+
+[generation]
+max_elements = 10
+min_elements = 8
+max_length = 800
+
+# ============================================================
+# 兼容性规则
+# ============================================================
+
+[compatibility.conflicts]
+
+# 时代冲突
+06_era = [
+  ["tang dynasty", "song dynasty", "yuan dynasty", "ming dynasty", "qing dynasty", "qing dynasty early", "qing dynasty late", "republic of china"],
+  ["heian period", "kamakura period", "muromachi period", "edo period", "meiji era", "taisho era", "showa era"],
+  ["three kingdoms period korea", "goryeo dynasty", "joseon dynasty"]
+]
+
+# 服装冲突
+07_clothing = [
+  ["tang dynasty ruqun", "tang dynasty shan", "tang dynasty banbi", "tang dynasty beizi", "tang dynasty qixiong ruqun", "tang dynasty court robe", "tang dynasty celestial dancer", "ruqun", "qixiong ruqun", "hanfu", "chinese hanfu", "high-waisted skirt", "embroidered silk"],
+  ["song dynasty beizi", "song dynasty ruqun", "crossed-collar ruqun", "long pleated skirt", "song dynasty wedding dress"],
+  ["ming dynasty shan", "standing collar", "ming dynasty ao", "ming dynasty mamian qun", "horse-face pleated skirt", "ming dynasty ao qun", "ming dynasty pifeng", "cape"],
+  ["qing dynasty qipao", "early form qipao", "manchu court robe", "liangbatou hairstyle", "qing dynasty qizhuang", "pipa sleeve", "standing collar qipao", "mandarin square", "court necklace"],
+  ["heian junihitoe", "twelve-layer robe", "heian karaginu", "heian uwagi", "heian kosode", "heian itsutsuginu", "five-layered silk", "trailing hem", "hitoe", "juni-hitoe"],
+  ["edo furisode", "long sleeves", "edo tomesode", "edo shiromuku", "white wedding kimono", "edo komon", "edo yukata", "edo oiran", "heavy brocade", "courtesan uchikake", "kimono", "traditional japanese kimono", "obi", "wide obi"],
+  ["office lady suit", "pencil skirt", "sailor uniform", "jk uniform", "rolled skirt", "mori girl fashion", "school uniform", "y2k fashion"],
+  ["joseon hanbok", "chima jeogori", "high-waisted skirt", "short jacket", "joseon dangui", "norigae", "joseon wedding hanbok", "hanbok", "korean traditional clothing", "jeogori", "chima"],
+  ["cyberpunk kogal uniform", "led collar uniform", "magical girl dress", "demon hunter coat", "wuxia hanfu", "xianxia cultivator robe", "angelic gown", "steampunk corset", "witch academy robe"]
+]
+
+# 背景冲突
+08_background = [
+  ["tang dynasty changan", "song dynasty hangzhou west lake", "ming dynasty forbidden city", "qing dynasty summer palace", "suzhou classical garden", "chengdu teahouse", "beijing hutong", "lijiang old town", "dunhuang mogao caves", "xian city wall", "temple of heaven", "guilin karst peaks", "yellow mountain", "zhangjiajie pillar forests", "hong kong victoria harbour", "taipei longshan temple"],
+  ["heian kyoto", "kamakura great buddha", "edo yoshiwara pleasure quarter", "nikko toshogu shrine", "himeji castle", "kiyomizu-dera temple", "gion shirakawa", "dotonbori neon", "sensoji asakusa", "fushimi inari", "arashiyama bamboo grove", "shibuya crossing", "akihabara", "hokkaido sapporo", "okinawa naha beach", "naoshima island"],
+  ["seoul gyeongbokgung palace", "bukchon hanok village", "jeonju hanok village", "gyeongju bulguksa temple", "jeju hallasan", "busan jagalchi fish market", "nami island", "seoul namsan tower"],
+  ["floating island", "demon realm", "xianxia cultivation mountain", "magical library", "underground city bioluminescence", "clockwork city brass steam", "frozen kingdom", "crystal cave", "mecha hangar"],
+  ["neon megacity", "cyberpunk back alley", "orbital colony ring", "underwater bubble city", "abandoned tokyo", "megacorp lobby", "mars colony biodome", "lunar base"]
+]
