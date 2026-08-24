@@ -1,0 +1,5 @@
+# ============================================================
+# Quality prefix (Anima recommended)
+# ============================================================
+
+masterpiece, best quality, score_7, safe, highres, absurdres

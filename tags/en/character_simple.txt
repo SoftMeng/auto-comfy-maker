@@ -1,0 +1,227 @@
+# Character/role (random)
+coser
+idol
+model
+business woman
+office lady
+school girl
+mysterious woman
+elegant lady
+fashion model
+fantasy character
+witch
+magical girl
+demon queen
+angel
+swordswoman
+ninja
+priestess
+princess
+queen
+slime girl
+elf
+succubus
+cat girl
+bunny girl
+fitness model
+yoga practitioner
+professional dancer
+ballerina
+figure skater
+swimsuit model
+cowgirl
+maid
+nun
+school teacher
+secretary
+mysterious stranger
+high-class courtesan
+princess
+fairy
+miko
+valkyrie
+warrior
+school nurse
+bar maid
+gyaru
+pirate
+vampire
+succubus
+boss
+queen
+witch
+sorceress
+knight
+ninja
+assassin
+prince
+maid
+butler
+bride
+witch
+student
+miko
+idol
+singer
+actress
+princess
+prince
+fencer
+archer
+mage
+healer
+priest
+monk
+samurai
+shogun
+emperor
+empress
+prince
+princess
+knight
+paladin
+ranger
+rogue
+bard
+druid
+warlock
+sorcerer
+necromancer
+beastmaster
+illusionist
+alchemist
+gunslinger
+cowboy
+outlaw
+bandit
+pirate
+navigator
+captain
+first mate
+quartermaster
+cook
+doctor
+engineer
+scientist
+professor
+teacher
+student
+graduate
+philosopher
+scholar
+scribe
+librarian
+archivist
+interpreter
+translator
+diplomat
+ambassador
+emissary
+envoy
+messenger
+courier
+guard
+sentry
+watchman
+patrol
+scout
+spy
+infiltrator
+saboteur
+assassin
+mercenary
+bounty hunter
+treasure hunter
+adventurer
+explorer
+pioneer
+settler
+farmer
+herder
+fisher
+hunter
+trapper
+woodcutter
+miner
+smith
+carpenter
+mason
+weaver
+tailor
+cobbler
+baker
+brewer
+vintner
+butcher
+cheesemaker
+miller
+merchant
+trader
+peddler
+shopkeeper
+innkeeper
+bartender
+server
+hostess
+entertainer
+performer
+acrobat
+juggler
+magician
+fortune teller
+astrologer
+oracle
+prophet
+seer
+medium
+healer
+medicine man
+shaman
+witch doctor
+exorcist
+inquisitor
+crusader
+templar
+paladin
+cleric
+acolyte
+novice
+initiate
+disciple
+follower
+believer
+fanatic
+zealot
+heretic
+apostate
+renegade
+outcast
+exile
+refugee
+immigrant
+wanderer
+nomad
+vagabond
+hobo
+beggar
+thief
+pickpocket
+burglar
+robber
+mugger
+highwayman
+pirate
+bandit
+outlaw
+renegade
+rebel
+insurgent
+revolutionary
+terrorist
+assassin
+murderer
+killer
+slayer
+hunter
+predator
+prey

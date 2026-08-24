@@ -1,0 +1,85 @@
+# ============================================================
+# Profession, Social Class, Role Type
+# ============================================================
+
+# ============ Traditional Professions ============
+sword instructor at a rural dojo
+apprentice at a swordsmith forge
+practitioner of traditional Chinese medicine
+calligrapher commissioned by the imperial court
+weaver of brocade for the royal family
+porcelain painter in a Jingdezhen kiln
+shadow puppet carver in a small workshop
+jade carver in a Guangzhou atelier
+Korean royal court cuisine chef
+tea master hosting chanoyu ceremonies
+ikebana school headmistress
+shogi professional ranked dan-3
+go player in a regional tournament
+puppeteer of a Bunraku troupe
+noh theater apprentice in Kyoto
+
+# ============ Modern Professions ============
+cybersecurity analyst at a Tokyo firm
+voice actress recording an anime dub
+freelance manga assistant in Kichijouji
+patissier at a Ginza patisserie
+neurosurgeon on a 36-hour shift
+forensic pathologist in a Seoul morgue
+architect designing a Taipei skyscraper
+marine biologist on a Hokkaido research vessel
+aviation mechanic on a carrier deck
+fashion designer at a Seoul atelier
+high school teacher of classical literature
+barista at a third-wave Taipei café
+ranger in a Taiwanese mountain park
+
+# ============ Fantasy/Sci-Fi Professions ============
+demon summoner for a private investigation firm
+professional monster hunter guild member
+guild receptionist who secretly is a retired S-rank
+fortune teller of a forgotten shrine
+alchemist running an underground lab
+artifact appraiser in an antique shop
+demon slayer squad captain
+flying courier between floating islands
+mecha pilot on loan to a mercenary unit
+sword saint registered with the martial registry
+summoner who contracts multiple spirits
+rune scribe in a magic academy
+
+# ============ Social Classes ============
+royalty - legitimate princess
+nobility - count's daughter
+nobility - marquis's third daughter
+scholar-gentry family()
+wealthy merchant family()
+honest working-class family
+rural farming family
+wandering ronin lineage
+fallen noble house, now in disgrace
+orphan raised by the temple
+child of the pleasure quarter
+illegitimate daughter of a nobleman
+adopted daughter of a craftsman
+newly wealthy industrialist family
+old money estate in decline
+powerful yakuza family heir
+underground information broker family
+cultivation sect inner disciple
+outer disciple of a martial sect
+wandering cultivator()
+
+# ============ Role Types ============
+main protagonist with hidden lineage
+rival turned ally
+mentor with a tragic past
+comic relief with surprising depth
+tragic heroine of doomed love
+antihero walking the gray line
+mysterious stranger with unclear motives
+redeemed villain from a former life
+shadow ruler pulling strings behind the scenes
+innocent bystander caught in fate
+chosen one who rejects the prophecy
+last survivor of a destroyed clan

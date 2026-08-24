@@ -1,0 +1,38 @@
+# ============================================================
+# Region (lowercase, Danbooru tag style)
+# ============================================================
+
+jiangnan water town china
+suzhou gardens china
+old beijing hutong china
+xian ancient capital china
+chengdu teahouse china
+shanghai china
+hong kong
+taipei
+macau
+tibet china
+inner mongolia china
+asakusa tokyo japan
+gion kyoto japan
+shibuya tokyo japan
+akihabara japan
+hokkaido japan
+okinawa japan
+nara japan
+tokyo japan
+kyoto japan
+osaka japan
+sapporo japan
+bukchon hanok seoul korea
+gyeongju korea
+jeju korea
+jeonju korea
+busan korea
+seoul korea
+east asian setting
+chinese setting
+japanese setting
+korean setting
+asian city
+oriental setting

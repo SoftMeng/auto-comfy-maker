@@ -1,0 +1,42 @@
+# ============================================================
+# World Settings
+# ============================================================
+
+# ============ Historical Asian Settings ============
+Tang dynasty Chang'an at its peak
+Song dynasty Hangzhou, capital of culture
+Ming dynasty Nanjing, southern capital
+Qing dynasty Forbidden City, last emperors
+Edo period Tokyo, the pleasure quarters
+Heian period Kyoto, court of poetry
+Joseon dynasty Hanyang, scholars and royals
+Republic of Shanghai, jazz and gunfire
+
+# ============ Modern Asian Settings ============
+contemporary Tokyo, salaryman dystopia
+present-day Seoul, K-pop pressure cooker
+modern Hong Kong, neon over old streets
+current Taipei, night-market warmth
+futuristic Shibuya, holographic billboards
+near-future Singapore, vertical city
+modern Beijing, hutongs vanishing under glass
+modern Osaka, takoyaki and otaku
+contemporary Busan, harbor and hip-hop
+modern Sapporo, snow festival crowds
+
+# ============ Fantasy Settings ============
+xianxia cultivation realm, immortal sects
+wuxia jianghu, rivers and lakes
+isekai fantasy continent, demon army approaching
+magical academy city, towers of glass and crystal
+dungeon-crawling adventurer town
+demon realm on the other side of the mirror
+spirit realm where gods walk among mortals
+
+# ============ Sci-Fi Settings ============
+cyberpunk Tokyo, 2187, megacorp dystopia
+mecha pilot war front, year 2240
+post-apocalyptic Shibuya, year 587 after collapse
+space colony, generation ship 47
+underwater city, drowned Shanghai 2099
+AI-governed utopia, year 3051

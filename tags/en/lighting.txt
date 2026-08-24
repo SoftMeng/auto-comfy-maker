@@ -1,0 +1,34 @@
+# ============================================================
+# Lighting
+# ============================================================
+
+backlit by low sun, hair a halo of gold
+rim light from behind, edges glowing
+top-down spotlight, shadows under eyes and chin
+underlighting from below, the demonic
+side lighting, half face in shadow
+soft window light, even and flattering
+harsh midday sun, contrasty and unforgiving
+overcast diffuse light, no shadows, no highlights
+golden hour sun, warm and forgiving
+blue hour, cold and melancholic
+moonlight, blue-silver, mysterious
+candlelight, flickering, the historical
+firelight, dancing, the camp scene
+lantern light, warm orange pools, the festival
+fluorescent light, sickly green-white, the office
+neon light, magenta and cyan, the cyberpunk
+stage spotlight, hard-edged, the performer
+sunset through trees, dappled light, the forest
+god rays through clouds, the divine
+fog-diffused light, the eerie morning
+underwater light, the aquarium
+TV glow, the otaku bedroom
+phone screen glow, the modern
+stained glass light, the church
+aurora borealis, the far north
+festival paper lantern glow, the matsuri
+magical light from her palm, the sorceress
+eyeshine in the dark, the predator
+holy light, the saint
+unholy light, the cursed

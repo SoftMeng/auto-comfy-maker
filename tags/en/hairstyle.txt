@@ -1,0 +1,40 @@
+# ============================================================
+# Hairstyle (Danbooru tags)
+# ============================================================
+
+long hair
+short hair
+medium hair
+very long hair
+hair past waist
+bob cut
+pixie cut
+undercut
+wavy hair
+curly hair
+straight hair
+messy hair
+twin tails
+ponytail
+low ponytail
+high ponytail
+braid
+side braid
+twin braids
+braided bun
+bun
+double bun
+high bun
+messy bun
+half up half down
+side swept bangs
+blunt bangs
+hair over one eye
+swept bangs
+bangs pinned back
+no bangs
+slicked back hair
+wet hair
+hair down
+hair flowing
+hair blowing

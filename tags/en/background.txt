@@ -1,0 +1,88 @@
+# ============================================================
+# Background (lowercase, Danbooru tag style)
+# ============================================================
+
+tang dynasty changan
+song dynasty hangzhou west lake
+ming dynasty forbidden city
+qing dynasty summer palace
+suzhou classical garden
+chengdu teahouse
+beijing hutong
+lijiang old town
+dunhuang mogao caves
+xian city wall
+temple of heaven
+guilin karst peaks
+yellow mountain
+zhangjiajie pillar forests
+hong kong victoria harbour
+taipei longshan temple
+heian kyoto
+kamakura great buddha
+edo yoshiwara pleasure quarter
+nikko toshogu shrine
+himeji castle
+kiyomizu-dera temple
+gion shirakawa
+dotonbori neon
+sensoji asakusa
+fushimi inari
+arashiyama bamboo grove
+shibuya crossing
+akihabara
+hokkaido sapporo
+okinawa naha beach
+naoshima island
+seoul gyeongbokgung palace
+bukchon hanok village
+jeonju hanok village
+gyeongju bulguksa temple
+jeju hallasan
+busan jagalchi fish market
+nami island
+seoul namsan tower
+southeast asian floating market
+himalayan foothill monastery
+mongolian grassland
+tibetan potala palace
+halong bay
+bangkok grand palace
+borobudur temple
+angkor wat
+tokyo shinjuku kabukicho
+hong kong mongkok night market
+taipei raohe night market
+seoul gangnam
+singapore marina bay sands
+floating island
+demon realm
+xianxia cultivation mountain
+magical library
+underground city bioluminescence
+clockwork city brass steam
+frozen kingdom
+crystal cave
+mecha hangar
+neon megacity
+cyberpunk back alley
+orbital colony ring
+underwater bubble city
+abandoned tokyo
+megacorp lobby
+mars colony biodome
+lunar base
+cherry blossom petals
+rain
+snow
+fog
+autumn leaves
+summer leaves
+spring flowers
+winter snow
+dawn
+golden hour
+sunset
+blue hour
+moonlit
+starry sky

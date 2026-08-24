@@ -1,0 +1,34 @@
+# ============================================================
+# Manga Genre
+# ============================================================
+
+shōnen battle - training arc, tournament, mentor
+shōjo romance - first love, rival, confession scene
+josei slice-of-life - working woman, mature love, daily struggle
+seinen dark fantasy - morally gray, violence, antihero
+isekai power fantasy - transported, cheat skill, harem
+mahō shōjo - magical girl, transformation, friendship
+mecha - cockpit, giant robot, pilot ace
+historical drama - war, court intrigue, dynastic change
+wuxia martial arts - flying swordsmen, qi, sects
+xianxia cultivation - immortality, tribulation, dao
+horror psychological - slow dread, twist, isolation
+mystery detective - locked room, deduction, case
+school romance - festival, beach episode, confession
+sports competitive - rival, training, victory
+idol performance - stage, fans, sparkles
+gourmet food - cooking battle, restaurant, recipe
+cyberpunk dystopia - megacorp, hacker, neon rain
+post-apocalyptic survival - scavenging, danger, hope
+fantasy adventure - quest, party, dungeon crawl
+romantic comedy - misunderstanding, bickering, love
+yuri / girls' love - tender, soft, two women
+BL / boys' love - focused on a male-male relationship
+cooking competition - timed, judged, ingredients
+yokai supernatural - spirit, exorcist, hidden realm
+samurai honor - bushido, revenge, seppuku
+court intrigue - political scheming, factions, betrayal
+spy thriller - undercover, mission, double agent
+medical drama - surgery, ethics, patient
+haunted house - ghosts, possession, exorcism
+music performance - orchestra, band, virtuoso

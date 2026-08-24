@@ -1,0 +1,2 @@
+# Quality prefix for anima-simple
+explicit, masterpiece, best quality, score_7, safe

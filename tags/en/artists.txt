@@ -1,0 +1,81 @@
+# ============================================================
+# Artists (must use @ prefix per Anima requirement)
+# ============================================================
+
+@sakimichan
+@wlop
+@pixiv fantasia
+@ask
+@studio trigger
+@kyoto animation
+@makoto shinkai
+@hayao miyazaki
+@khyle
+@cevio
+@nitroplus
+@type-moon
+@frank frazetta
+@artgerm
+@ross tran
+@loish
+@sakimichan
+@as109
+@fuzichoco
+@mai yoneyama
+@jang chan
+@chibi maruko chan
+@tsubasa tsubasa
+@ranma 1/2
+@saint seiya
+@shingeki no kyojin
+@neon genesis evangelion
+@card captor sakura
+@sailor moon
+@madoka magica
+@jojo
+@berserk
+@vagabond
+@initial d
+@koei
+@final fantasy
+@nier automata
+@genshin impact
+@honkai
+@blue archive
+@arknights
+@azur lane
+@fate series
+@made in abyss
+@kimetsu no yaiba
+@spy x family
+@chainsaw man
+@jujutsu kaisen
+@my hero academia
+@demon slayer
+@promare
+@redline
+@pigtails
+@levia-san
+@alpha
+@oroka
+@necömi
+@nardack
+@ciloranko
+@shal.e
+@ice
+@nyame
+@ren
+@yuki
+@shan
+@as109
+@tsukamichi
+@himitsu
+@niji
+@anonymous
+@hong
+@white
+@chinese artist
+@japanese artist
+@korean artist
+@european artist
+@american artist

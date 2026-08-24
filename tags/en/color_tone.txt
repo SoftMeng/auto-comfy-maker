@@ -1,0 +1,34 @@
+# ============================================================
+# Color Tone
+# ============================================================
+
+bright cheerful palette, primary colors
+muted earthy palette, beige and olive
+pastel candy palette, pink and mint
+monochrome black and white
+sepia vintage, the photograph
+muted teal and orange, the Hollywood blockbuster
+soft pink and cream, the sweet girl
+cold blue and silver, the ice queen
+warm amber and gold, the autumn
+forest green and brown, the ranger
+crimson and black, the vengeance
+purple and gold, the royal
+high contrast noir, black and neon
+cyberpunk neon, magenta-cyan-yellow
+watercolor wash, soft and dreamy
+oil painting richness, deep and saturated
+ukiyo-e palette, indigo and vermilion
+sumi-e ink palette, black and white only
+pencil sketch, gray and white only
+limited palette, three colors only
+tetradic colors, four in harmony
+split-complementary, two main and accents
+monochromatic blues, the underwater scene
+monochromatic reds, the inferno
+monochromatic greens, the forest
+two-tone duotone, blue and orange
+muted fantasy, desaturated magical
+high saturation pop-art, the modern
+faded 1970s print, the retro
+film grain warm, the analogue photo

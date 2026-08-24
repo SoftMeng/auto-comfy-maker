@@ -1,0 +1,70 @@
+# ============================================================
+# Props and Weapons
+# ============================================================
+
+# Chinese weapons
+jian() - straight double-edged sword
+dao() - single-edged saber
+gun() - staff, often paired
+qiang() - spear with red tassel
+yao dao() - crescent-moon blade glaive
+ji() - halberd with crescent and spear
+tie bian() - iron whip with segments
+shuang gou() - paired hooks
+fei biao() - throwing dart
+qian kun diao() - ring weapon
+jin gu bang() - golden staff
+
+# Japanese weapons
+katana() - curved long sword
+wakizashi() - short companion sword
+tantō() - short dagger
+naginata() - glaive on a long pole
+yari() - spear
+yumi() - asymmetrical longbow
+shuriken() - throwing star
+kunai() - throwing blade
+bokken() - wooden practice sword
+shinai() - bamboo practice sword
+kanabō() - iron-studded club
+kusarigama() - chain and sickle
+jo() - short staff
+bo() - long staff
+
+# Korean weapons
+hwandudaedo() - ring-pommel saber
+woldo() - crescent-moon blade
+gum() - straight sword
+deungpa() - back shield
+hwal() - Korean composite bow
+chongtong() - musket
+
+# Signature items and tools
+single cherry blossom petal floating in her palm
+smoking pipe(kiseru) with a long bamboo mouth-piece
+ink brush() poised above rice paper
+opened folding fan painted with cranes
+closed war fan, the general
+bamboo scroll of poetry, half unrolled
+tea caddy(chabako) with a single raked tea bowl
+koto() - long zither, half visible
+shamisen() - three-stringed lute, the geisha
+wadaiko() - large drum, the miko
+rin() - bell on a stick, the exorcist
+gohei() - paper streamers on a stick, the shrine maiden
+ofuda() - paper talisman, the exorcist
+crystal ball() for divination, the fortune teller
+tarot deck fanned in one hand, the gypsy
+old leather-bound grimoire, the apprentice witch
+medical bag of herbs and needles, the herbalist
+smartphone, the modern
+polaroid camera, the Gen Z
+tote bag of library books, the student
+umbrella in the rain, the melancholy
+bouquet of wilted flowers, the mournful
+letter clutched in her hand, the long-awaited news
+photograph, old and creased, the lost love
+old pocket watch that has stopped, the time-traveller
+peony, fully open, the spring
+plum blossom branch, the winter warrior
+lotus flower, the Buddhist

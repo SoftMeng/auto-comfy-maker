@@ -1,0 +1,127 @@
+# View/camera angle (random)
+low angle view
+high angle view
+from below
+from above
+from side
+from behind
+from front
+dynamic angle
+worm eye view
+bird eye view
+dutch angle
+fisheye lens
+wide angle
+telephoto lens
+close-up
+extreme close-up
+medium shot
+full body
+upper body
+lower body
+portrait
+bust shot
+cowboy shot
+looking at viewer
+looking away
+looking back
+over shoulder
+from above looking down
+from below looking up
+side view
+profile view
+three-quarter view
+straight on
+extreme wide shot
+extreme close-up
+macro shot
+bird's eye view
+worm's eye view
+isometric view
+tilted angle
+low angle shot
+ground level view
+knee level
+eye level
+chest level
+head level
+waist level
+feet level
+overhead view
+panoramic view
+telescopic view
+microscopic view
+x-ray view
+cutaway view
+cross-section view
+exploded view
+isometric projection
+axonometric projection
+perspective view
+orthographic view
+front view
+side view
+back view
+top view
+bottom view
+left view
+right view
+rear view
+quarter view
+three quarters
+rear quarter
+front quarter
+side profile
+back profile
+front profile
+right profile
+left profile
+rear profile
+top profile
+bottom profile
+angled view
+tilted view
+rotated view
+flipped view
+mirrored view
+inverted view
+reversed view
+upside down
+sideways
+tilted
+angled
+rotated
+flipped
+mirrored
+inverted
+reversed
+overturned
+upended
+askew
+awry
+crooked
+slanting
+slantwise
+diagonal
+vertical
+horizontal
+parallel
+perpendicular
+oblique
+perpendicular
+orthogonal
+right angle
+acute angle
+obtuse angle
+straight angle
+reflex angle
+full angle
+zero angle
+180 degree angle
+360 degree angle
+90 degree angle
+45 degree angle
+30 degree angle
+60 degree angle
+15 degree angle
+75 degree angle

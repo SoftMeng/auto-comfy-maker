@@ -1,0 +1,131 @@
+# ============================================================
+# Features (Danbooru tag style)
+# ============================================================
+
+# Hair styles
+long hair
+very long hair
+hair past waist
+short hair
+medium hair
+bob cut
+shoulder length hair
+pixie cut
+undercut
+shaved sides
+asymmetric cut
+wavy hair
+curly hair
+straight hair
+twin tails
+ponytail
+low ponytail
+high ponytail
+side ponytail
+braid
+side braid
+twin braids
+boxer braids
+fishtail braid
+braided bun
+bun
+high bun
+low bun
+double bun
+half up half down
+messy bun
+hair ribbon
+hair flower
+hair ornament
+hair stick
+hairpin
+side swept bangs
+blunt bangs
+hair over one eye
+swept bangs
+wispy bangs
+no bangs
+slicked back hair
+
+# Hair colors
+black hair
+brown hair
+light brown hair
+dark brown hair
+blonde hair
+silver hair
+white hair
+grey hair
+pink hair
+purple hair
+blue hair
+green hair
+red hair
+gradient hair
+multicolored hair
+streaked hair
+
+# Eyes
+blue eyes
+red eyes
+green eyes
+brown eyes
+purple eyes
+gold eyes
+amber eyes
+silver eyes
+grey eyes
+pink eyes
+yellow eyes
+heterochromia
+glowing eyes
+narrowed eyes
+closed eyes
+wide eyes
+big eyes
+sharp eyes
+
+# Face/skin
+pale skin
+fair skin
+tan skin
+dark skin
+olive skin
+porcelain skin
+flawless skin
+smooth skin
+freckles
+beauty mark
+mole under eye
+blush
+
+# Expressions
+smile
+gentle smile
+frown
+serious expression
+angry expression
+sad expression
+neutral expression
+smirk
+pout
+glare
+scowl
+open mouth
+closed mouth
+parted lips
+
+# Body
+petite
+small breasts
+medium breasts
+large breasts
+slim
+slender
+athletic
+muscular
+tall
+short
+young
+adult
+mature

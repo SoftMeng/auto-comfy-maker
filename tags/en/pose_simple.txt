@@ -1,0 +1,250 @@
+# Pose (random)
+standing
+sitting
+kneeling
+crouching
+spreading legs
+spreading buttocks with hands
+bending over
+leaning forward
+hand on hip
+hand on thigh
+hands behind back
+arms spread
+looking at viewer
+looking down at viewer
+looking up
+looking back
+looking over shoulder
+crossed arms
+standing on one leg
+squatting
+lying down
+walking
+running
+dancing
+posing
+sitting on chair
+sitting on desk
+sitting on edge
+sitting cross-legged
+kneeling on one knee
+leaning against wall
+leaning against door
+leaning on railing
+hands on knees
+hands clasped
+hand extended
+finger to lips
+hand under chin
+biting lip
+tongue out
+winking
+closed eyes
+smiling
+serious expression
+sultry expression
+seductive pose
+come-hither look
+inviting gesture
+provocative pose
+elegant pose
+sensual pose
+alluring pose
+mesmerizing gaze
+mysterious smile
+teasing pose
+playful pose
+shy pose
+confident pose
+powerful pose
+graceful pose
+dynamic pose
+action pose
+peaceful pose
+relaxed pose
+tense pose
+anxious pose
+excited pose
+calm pose
+thoughtful pose
+contemplative pose
+meditative pose
+sleepy pose
+dreamy pose
+fierce pose
+proud pose
+humble pose
+vulnerable pose
+defiant pose
+submissive pose
+dominant pose
+playful teasing
+innocent look
+knowing smile
+enigmatic expression
+poker face
+seductive smile
+mysterious gaze
+hypnotic eyes
+magnetic stare
+piercing gaze
+intense stare
+gentle look
+soft gaze
+warm smile
+radiant smile
+bright smile
+cute smile
+sweet smile
+shy smile
+bashful smile
+mischievous smile
+playful grin
+wicked smile
+evil smile
+sadistic smile
+innocent smile
+pure smile
+saintly smile
+angelic smile
+devilish smile
+sultry smile
+seductive smile
+flirtatious smile
+coquettish smile
+coy smile
+wanton smile
+lewd smile
+obscene smile
+perverted smile
+depraved smile
+lustful smile
+carnal smile
+sensual smile
+erotic smile
+provocative smile
+alluring smile
+enticing smile
+tempting smile
+inviting smile
+welcoming smile
+seductive expression
+flirtatious expression
+coquettish expression
+sultry expression
+alluring expression
+enticing expression
+tempting expression
+inviting expression
+welcoming expression
+come-hither expression
+bedroom eyes
+doe eyes
+puppy eyes
+kitten eyes
+fox eyes
+wolf eyes
+snake eyes
+dragon eyes
+phoenix eyes
+eagle eyes
+hawk eyes
+owl eyes
+raven eyes
+dove eyes
+swan eyes
+peacock eyes
+butterfly eyes
+bee eyes
+ladybug eyes
+dragonfly eyes
+moth eyes
+cricket eyes
+grasshopper eyes
+spider eyes
+scorpion eyes
+centipede eyes
+snail eyes
+slug eyes
+worm eyes
+caterpillar eyes
+butterfly cocoon
+moth cocoon
+silk cocoon
+golden silk
+silver silk
+bronze silk
+copper silk
+iron silk
+steel silk
+titanium silk
+diamond silk
+emerald silk
+ruby silk
+sapphire silk
+amethyst silk
+topaz silk
+opal silk
+pearl silk
+coral silk
+jade silk
+lapis silk
+malachite silk
+turquoise silk
+onyx silk
+obsidian silk
+jet silk
+amber silk
+coral silk
+ivory silk
+ebony silk
+mahogany silk
+walnut silk
+oak silk
+pine silk
+cedar silk
+birch silk
+maple silk
+ash silk
+elm silk
+willow silk
+bamboo silk
+rattan silk
+wicker silk
+straw silk
+hay silk
+silk silk
+satin silk
+velvet silk
+cashmere silk
+angora silk
+mohair silk
+merino silk
+alpaca silk
+llama silk
+vicuna silk
+guanaco silk
+camel silk
+horsehair silk
+silk hair
+human hair
+animal hair
+fur
+wool
+fleece
+down
+feathers
+scales
+skin
+leather
+hide
+pelt
+fur coat
+wool coat
+leather coat
+skin coat
+fur coat
+wool coat
+leather coat
+skin coat

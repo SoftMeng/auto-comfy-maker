@@ -1,0 +1,147 @@
+# ============================================================
+# Clothing (Danbooru tag style)
+# ============================================================
+
+# Tang dynasty
+tang dynasty ruqun
+tang dynasty shan
+tang dynasty banbi
+tang dynasty beizi
+tang dynasty qixiong ruqun
+tang dynasty court robe
+tang dynasty celestial dancer
+chinese traditional clothing
+ruqun
+qixiong ruqun
+hanfu
+chinese hanfu
+high-waisted skirt
+long flowing sleeves
+embroidered silk
+
+# Song dynasty
+song dynasty beizi
+song dynasty ruqun
+crossed-collar ruqun
+long pleated skirt
+embroidered hem
+song dynasty wedding dress
+phoenix crown
+traditional chinese wedding dress
+
+# Ming dynasty
+ming dynasty shan
+standing collar
+horse-hoof cuff
+ming dynasty ao
+ming dynasty mamian qun
+horse-face pleated skirt
+ming dynasty ao qun
+ming dynasty pifeng
+cape
+bridal red phoenix crown
+chinese bridal dress
+
+# Qing dynasty
+qing dynasty qipao
+early form qipao
+manchu court robe
+liangbatou hairstyle
+qing dynasty qizhuang
+pipa sleeve
+standing collar qipao
+qing dynasty wedding dress
+red and gold dress
+mandarin square
+court necklace
+eight-banner embroidery
+
+# Heian period Japan
+heian junihitoe
+twelve-layer robe
+heian karaginu
+heian uwagi
+heian kosode
+heian itsutsuginu
+five-layered silk
+trailing hem
+hitoe
+juni-hitoe
+traditional japanese clothing
+
+# Edo period Japan
+edo furisode
+long sleeves
+edo tomesode
+edo shiromuku
+white wedding kimono
+edo komon
+edo yukata
+edo oiran
+heavy brocade
+courtesan uchikake
+kimono
+traditional japanese kimono
+obi
+taiko knot obi
+wide obi
+
+# Modern Japan
+office lady suit
+pencil skirt
+sailor uniform
+jk uniform
+rolled skirt
+mori girl fashion
+natural linen
+y2k fashion
+modern japanese fashion
+school uniform
+
+# Joseon Korea
+joseon hanbok
+chima jeogori
+high-waisted skirt
+short jacket
+joseon dangui
+norigae
+joseon wedding hanbok
+phoenix crown
+hanbok
+korean traditional clothing
+jeogori
+chima
+
+# Modern Korea
+modern korean hanbok
+korean office fashion
+k-pop stage outfit
+sequined crop top
+modern hanbok
+korean idol outfit
+
+# Other Asian
+mongolian deel
+tibetan chuba
+vietnamese ao dai
+thai chut thai
+indonesian kebaya
+batik sarong
+malaysian baju kurung
+
+# Fantasy/Sci-fi
+cyberpunk kogal uniform
+led collar uniform
+magical girl dress
+star brooch
+demon hunter coat
+wuxia hanfu
+sword sash
+xianxia cultivator robe
+cloud motif robe
+angelic gown
+white and gold dress
+steampunk corset
+brass goggles
+witch academy robe
+star pattern robe

@@ -1,0 +1,67 @@
+# ============================================================
+# Illustration Styles (Danbooru tag style)
+# ============================================================
+
+children's book illustration
+flat illustration
+line art illustration
+doodles illustration
+watercolor illustration
+vintage illustration
+gouache illustration
+synthwave illustration
+manga illustration
+chinese ink illustration
+3d clay illustration
+hand-drawing illustration
+sketch illustration
+pencil illustration
+minimalist one-line illustration
+cel shading illustration
+digital painting
+traditional media
+airbrush illustration
+marker illustration
+pastel illustration
+oil painting illustration
+acrylic illustration
+copic illustration
+pixel art illustration
+vector illustration
+isometric illustration
+ink wash illustration
+sumi-e illustration
+ukiyo-e style
+ukiyo-e illustration
+block print illustration
+chinese painting style
+japanese painting style
+korean painting style
+character design
+concept art
+visual development
+key visual
+illustration
+painterly style
+anime style
+manga style
+cartoon style
+stylized illustration
+realistic illustration
+semi-realistic
+chibi illustration
+super deformed illustration
+card game illustration
+game cg
+visual novel cg
+light novel illustration
+novel illustration
+editorial illustration
+commercial illustration
+art nouveau illustration
+art deco illustration
+monochrome illustration
+grayscale illustration
+sepia illustration
+black and white illustration
+full color illustration

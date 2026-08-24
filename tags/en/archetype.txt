@@ -1,0 +1,39 @@
+# ============================================================
+# Archetype (lowercase, Danbooru tag style)
+# ============================================================
+
+scholar daughter
+noble daughter
+sword saint
+shrine maiden
+princess
+wandering ronin
+courtesan
+nun
+warrior nun
+midwife
+tea ceremony master
+geisha
+apprentice geisha
+idol trainee
+bookshop owner
+student
+delivery rider
+yakuza princess
+cafe owner
+programmer
+magical girl
+tokusatsu heroine
+demon lord daughter
+villainess
+chosen one
+last survivor
+dragon descendant
+mecha pilot
+space pirate
+witch
+priestess
+mage
+sword master
+martial artist
+cultivator

@@ -1,0 +1,43 @@
+# ============================================================
+# Pose (Danbooru tags)
+# ============================================================
+
+standing
+sitting
+kneeling
+squatting
+lying
+walking
+running
+jumping
+falling
+leaning
+cross-legged
+seiza
+hands on hips
+hands behind back
+hands clasped
+hand on cheek
+arms crossed
+arms behind head
+hands on knees
+one hand up
+looking at viewer
+looking away
+looking back
+looking down
+looking up
+looking over shoulder
+profile
+from above
+from below
+from side
+portrait
+upper body
+lower body
+full body
+cowboy shot
+close-up
+extreme close-up
+wide shot
+medium shot

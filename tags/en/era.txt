@@ -1,0 +1,106 @@
+# ============================================================
+# Era, Region & Archetype
+# ============================================================
+
+# ============ Chinese Regions ============
+Jiangnan water town, China
+Suzhou gardens, China
+Old Beijing hutong, China
+Xi'an ancient capital, China
+Chengdu teahouse district, China
+Shanghai concession-era, China
+Lijiang Naxi old town, China
+Dunhuang oasis, China
+Tibetan plateau, China
+Inner Mongolian grasslands, China
+Hong Kong neon district, China
+Taipei night market, Taiwan
+Macau colonial quarter, China
+
+# ============ Japanese Regions ============
+Asakusa old Tokyo, Japan
+Gion geisha district, Kyoto, Japan
+Shibuya scramble, Tokyo, Japan
+Akihabara electric town, Japan
+Hokkaido snowy fields, Japan
+Okinawa tropical coast, Japan
+Nara ancient capital, Japan
+Hiroshima bay, Japan
+Sapporo snow festival, Japan
+Naoshima art island, Japan
+
+# ============ Korean Regions ============
+Bukchon hanok village, Seoul, Korea
+Gyeongju Silla ruins, Korea
+Jeju volcanic island, Korea
+Jeonju hanok village, Korea
+Busan Jagalchi fish market, Korea
+Incheon Chinatown, Korea
+
+# ============ Pan-Asian & Fictional ============
+Southeast Asian port city
+Mongolian steppe frontier
+Silk Road oasis town
+Himalayan foothill kingdom
+Fictional East Asian fantasy realm
+Floating islands in the sky
+Underwater coral city
+Magical academy continent
+Wuxia jianghu realm
+Xianxia celestial realm
+Mecha pilot megacity
+Steampunk imperial capital
+Post-apocalyptic survivor settlement
+
+# ============ Historical Eras ============
+# Chinese Dynasties
+Tang Dynasty (618-907)
+Song Dynasty (960-1279)
+Yuan Dynasty (1271-1368)
+Ming Dynasty (1368-1644)
+Qing Dynasty early (1644-1796)
+Qing Dynasty late (1796-1912)
+Republic of China era (1912-1949)
+
+# Japanese Periods
+Heian period (794-1185)
+Kamakura period (1185-1333)
+Muromachi period (1336-1573)
+Edo period (1603-1868)
+Meiji era (1868-1912)
+Taisho era (1912-1926)
+Showa early (1926-1945)
+Showa late (1945-1989)
+
+# Korean Periods
+Three Kingdoms period, Korea
+Goryeo Dynasty (918-1392)
+Joseon Dynasty (1392-1897)
+
+# ============ Character Archetypes ============
+Classical Asian archetypes:
+scholar's daughter of an ancient clan
+heiress of a noble family fallen from grace
+sword saint retired from the martial world
+shrine maiden of a forgotten mountain shrine
+last princess of a conquered kingdom
+wandering ronin seeking redemption
+courtesan of the pleasure quarters
+Buddhist nun who once was a warrior
+
+Modern Asian archetypes:
+idol trainee three months from debut
+shy bookshop owner in a back alley
+cram school student with hidden talent
+delivery rider racing through neon streets
+yakuza princess hiding in plain sight
+café owner who listens to every secret
+
+Fantasy/sci-fi archetypes:
+isekai transmigrator with a cheat skill
+demon lord's daughter trying to be good
+reincarnated villainess of a romance game
+chosen one who refuses the call
+last survivor of an extinct dragon bloodline
+magical girl whose powers are fading
+mecha pilot with a stolen prototype

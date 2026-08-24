@@ -1,0 +1,39 @@
+# ============================================================
+# Era (lowercase, Danbooru tag style)
+# ============================================================
+
+tang dynasty
+song dynasty
+yuan dynasty
+ming dynasty
+qing dynasty
+qing dynasty early
+qing dynasty late
+republic of china
+heian period
+kamakura period
+muromachi period
+edo period
+meiji era
+taisho era
+showa era
+three kingdoms period korea
+goryeo dynasty
+joseon dynasty
+modern china
+modern japan
+modern korea
+historical
+period theme
+ancient china
+feudal japan
+dynasty era
+imperial china
+historical fantasy
+fantasy realm
+magical world
+isekai world
+cyberpunk era
+futuristic setting
+steampunk world
+post-apocalyptic
