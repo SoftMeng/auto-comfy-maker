@@ -38,13 +38,20 @@ pub fn substitute(
     width: Option<i64>,
     height: Option<i64>,
 ) -> String {
-    let mut out = template.replace("${positive_prompt}", positive_prompt);
-    out = out.replace("${seed}", &seed.to_string());
+    // 每个字段支持中英文别名——glmclaw 用 ${提示词}/${宽}/${高}/${种子}；
+    // 用户从 ComfyUI 导出的 workflow 习惯英文 ${positive_prompt} 等；都识别。
+    let mut out = template
+        .replace("${positive_prompt}", positive_prompt)
+        .replace("${提示词}", positive_prompt);
+    let seed_str = seed.to_string();
+    out = out.replace("${seed}", &seed_str).replace("${种子}", &seed_str);
     if let Some(w) = width {
-        out = out.replace("${width}", &w.to_string());
+        let ws = w.to_string();
+        out = out.replace("${width}", &ws).replace("${宽}", &ws);
     }
     if let Some(h) = height {
-        out = out.replace("${height}", &h.to_string());
+        let hs = h.to_string();
+        out = out.replace("${height}", &hs).replace("${高}", &hs);
     }
     out
 }
@@ -72,6 +79,30 @@ mod tests {
         assert_eq!(v["39"]["inputs"]["seed"], 42);
         assert_eq!(v["39"]["inputs"]["width"], 768);
         assert_eq!(v["39"]["inputs"]["height"], 1536);
+    }
+
+    #[test]
+    fn chinese_placeholders_compat() {
+        // glmclaw 风格的 ${提示词}/${宽}/${高}/${种子} 与英文别名同时工作
+        const CHINESE: &str = r#"{"39":{"inputs":{"text":"${提示词}","seed":${种子},"width":${宽},"height":${高}}}}"#;
+        let out = substitute(CHINESE, "长发美女", 7, Some(512), Some(768));
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(v["39"]["inputs"]["text"], "长发美女");
+        assert_eq!(v["39"]["inputs"]["seed"], 7);
+        assert_eq!(v["39"]["inputs"]["width"], 512);
+        assert_eq!(v["39"]["inputs"]["height"], 768);
+    }
+
+    #[test]
+    fn english_and_chinese_alias_coexist() {
+        // 一个模板里同时含两种占位符——都被替换
+        const MIX: &str = r#"{"a":{"text":"${positive_prompt}"},"b":{"text":"${提示词}"},"c":{"width":${width}},"d":{"height":${高}}}"#;
+        let out = substitute(MIX, "x", 1, Some(100), Some(200));
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(v["a"]["text"], "x");
+        assert_eq!(v["b"]["text"], "x");
+        assert_eq!(v["c"]["width"], 100);
+        assert_eq!(v["d"]["height"], 200);
     }
 
     #[test]
