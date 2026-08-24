@@ -24,6 +24,8 @@ pub struct PipelineOpts {
     pub template: String,
     pub no_send: bool,
     pub use_refine: bool,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
 }
 
 pub struct PipelineOutcome {
@@ -80,7 +82,7 @@ pub async fn run_pipeline(
         });
     }
 
-    let workflow = build_workflow(config, project_root, &opts.template, &final_prompt, seed)?;
+    let workflow = build_workflow(config, project_root, &opts.template, &final_prompt, seed, opts.width, opts.height)?;
     let image_path =
         Some(submit_and_download(config, &workflow, project_root, &final_prompt).await?);
 
@@ -98,7 +100,7 @@ pub async fn run_fixed_prompt(
     config: &AppConfig,
     project_root: &Path,
 ) -> Result<PathBuf> {
-    let workflow = build_workflow(config, project_root, template, prompt, seed)?;
+    let workflow = build_workflow(config, project_root, template, prompt, seed, None, None)?;
     submit_and_download(config, &workflow, project_root, prompt).await
 }
 
@@ -108,6 +110,8 @@ fn build_workflow(
     template: &str,
     prompt: &str,
     seed: u64,
+    width: Option<u32>,
+    height: Option<u32>,
 ) -> Result<Value> {
     let template_path = config
         .templates_root(project_root)
@@ -162,6 +166,24 @@ fn build_workflow(
             replacer
                 .replace_int(node, field, seed_value)
                 .context("replace seed in workflow")?;
+        }
+        if let (Some(node), Some(field), Some(w)) = (
+            entry.width_node.as_deref(),
+            entry.width_field.as_deref(),
+            width,
+        ) {
+            replacer
+                .replace_int(node, field, w as i64)
+                .context("replace width in workflow")?;
+        }
+        if let (Some(node), Some(field), Some(h)) = (
+            entry.height_node.as_deref(),
+            entry.height_field.as_deref(),
+            height,
+        ) {
+            replacer
+                .replace_int(node, field, h as i64)
+                .context("replace height in workflow")?;
         }
     }
 

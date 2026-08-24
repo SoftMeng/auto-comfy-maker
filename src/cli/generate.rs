@@ -31,6 +31,12 @@ pub struct GenerateArgs {
 
     #[arg(long)]
     pub refine: bool,
+
+    #[arg(long)]
+    pub width: Option<u32>,
+
+    #[arg(long)]
+    pub height: Option<u32>,
 }
 
 pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
@@ -45,6 +51,8 @@ pub async fn run(args: GenerateArgs, project_root: PathBuf) -> Result<()> {
         template: args.template,
         no_send: args.no_send,
         use_refine: args.refine,
+        width: args.width,
+        height: args.height,
     };
 
     let outcome = run_pipeline(&opts, &config, &project_root).await?;

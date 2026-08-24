@@ -63,6 +63,8 @@ pub async fn run(args: BatchArgs, project_root: PathBuf) -> Result<()> {
             template: args.template.clone(),
             no_send: args.no_send,
             use_refine: args.refine,
+            width: None,
+            height: None,
         };
 
         match run_pipeline(&opts, &config, &project_root).await {

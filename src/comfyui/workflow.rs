@@ -23,10 +23,22 @@ pub struct Manifest {
 pub struct ManifestEntry {
     pub positive_prompt_node: String,
     pub positive_prompt_field: String,
+    #[serde(default)]
     pub negative_prompt_node: Option<String>,
+    #[serde(default)]
     pub negative_prompt_field: Option<String>,
+    #[serde(default)]
     pub seed_node: Option<String>,
+    #[serde(default)]
     pub seed_field: Option<String>,
+    #[serde(default)]
+    pub width_node: Option<String>,
+    #[serde(default)]
+    pub width_field: Option<String>,
+    #[serde(default)]
+    pub height_node: Option<String>,
+    #[serde(default)]
+    pub height_field: Option<String>,
 }
 
 impl Manifest {
