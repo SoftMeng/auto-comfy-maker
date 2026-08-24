@@ -32,11 +32,7 @@ pub async fn submit_prompt(
         .map_err(ComfyuiError::from)?;
 
     if !resp.status().is_success() {
-        return Err(ComfyuiError::InvalidResponse(format!(
-            "submit HTTP {}",
-            resp.status()
-        ))
-        .into());
+        return Err(ComfyuiError::InvalidResponse(format!("submit HTTP {}", resp.status())).into());
     }
 
     let v: Value = resp.json().await.map_err(ComfyuiError::from)?;
@@ -101,7 +97,9 @@ mod tests {
             .await;
 
         let client = ComfyuiClient::new(server.uri()).unwrap();
-        let id = submit_prompt(&client, &json!({}), "client-1").await.unwrap();
+        let id = submit_prompt(&client, &json!({}), "client-1")
+            .await
+            .unwrap();
         assert_eq!(id, "abc-123");
     }
 

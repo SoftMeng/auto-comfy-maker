@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -130,12 +130,7 @@ impl Theme {
                 reason: "must not be empty".into(),
             });
         }
-        for (name, cat) in self
-            .order
-            .fixed
-            .iter()
-            .chain(self.order.random.iter())
-        {
+        for (name, cat) in self.order.fixed.iter().chain(self.order.random.iter()) {
             if cat.count == 0 {
                 return Err(ThemeError::Invalid {
                     field: format!("order.{name}.count"),
@@ -160,42 +155,6 @@ impl Theme {
             }
         }
         Ok(())
-    }
-
-    pub fn category_names(&self) -> Vec<String> {
-        let mut names: Vec<String> = self
-            .order
-            .fixed
-            .keys()
-            .chain(self.order.random.keys())
-            .chain(self.order.optional.keys())
-            .cloned()
-            .collect();
-        names.sort();
-        names.dedup();
-        names
-    }
-
-    pub fn tags_file(&self, project_root: &Path, category: &str) -> Option<PathBuf> {
-        if let Some(cat) = self.order.fixed.get(category) {
-            return Some(resolve_path(project_root, &cat.file));
-        }
-        if let Some(cat) = self.order.random.get(category) {
-            return Some(resolve_path(project_root, &cat.file));
-        }
-        if let Some(opt) = self.order.optional.get(category) {
-            return Some(resolve_path(project_root, &opt.file));
-        }
-        None
-    }
-}
-
-fn resolve_path(project_root: &Path, file: &str) -> PathBuf {
-    let p = Path::new(file);
-    if p.is_absolute() {
-        p.to_path_buf()
-    } else {
-        project_root.join(p)
     }
 }
 
@@ -277,34 +236,5 @@ scene = { file = "tags/zh/场景.txt", probability = 1.5 }
         );
         let err = Theme::load(dir.path(), "bad").unwrap_err();
         assert!(matches!(err, ThemeError::Invalid { .. }));
-    }
-
-    #[test]
-    fn category_names_unions_all_orders() {
-        let dir = tempfile::tempdir().unwrap();
-        write_theme(
-            dir.path(),
-            "multi",
-            r#"
-[meta]
-id = "multi"
-name = "m"
-lang = "zh"
-
-[order.fixed]
-a = { file = "x.txt", count = 1 }
-
-[order.random]
-b = { file = "x.txt", count = 1 }
-
-[order.optional]
-c = { file = "x.txt", probability = 0.5 }
-"#,
-        );
-        let t = Theme::load(dir.path(), "multi").unwrap();
-        let names = t.category_names();
-        assert!(names.contains(&"a".to_string()));
-        assert!(names.contains(&"b".to_string()));
-        assert!(names.contains(&"c".to_string()));
     }
 }

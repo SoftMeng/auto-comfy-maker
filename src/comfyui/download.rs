@@ -27,29 +27,28 @@ pub struct ImageRef {
 pub fn extract_first_image(history: &Value, prompt_id: &str) -> Option<ImageRef> {
     let entry = history.get(prompt_id)?;
     let outputs = entry.get("outputs")?.as_object()?;
-    for (_node_id, node_data) in outputs {
-        if let Some(images) = node_data.get("images").and_then(|v| v.as_array()) {
-            for img in images {
-                let filename = img.get("filename")?.as_str()?.to_string();
-                let subfolder = img
-                    .get("subfolder")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string();
-                let kind = img
-                    .get("type")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("output")
-                    .to_string();
-                return Some(ImageRef {
-                    filename,
-                    subfolder,
-                    kind,
-                });
-            }
-        }
-    }
-    None
+    let img = outputs
+        .values()
+        .filter_map(|node| node.get("images"))
+        .filter_map(|v| v.as_array())
+        .flatten()
+        .next()?;
+    let filename = img.get("filename")?.as_str()?.to_string();
+    let subfolder = img
+        .get("subfolder")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let kind = img
+        .get("type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("output")
+        .to_string();
+    Some(ImageRef {
+        filename,
+        subfolder,
+        kind,
+    })
 }
 
 pub async fn download_image(

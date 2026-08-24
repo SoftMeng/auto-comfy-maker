@@ -1,6 +1,5 @@
 use std::collections::HashSet;
-use std::path::{Path, PathBuf};
-
+use std::path::Path;
 
 use crate::tags::{Lang, LangAwarePool};
 use crate::theme::Theme;
@@ -15,7 +14,6 @@ pub struct CombineContext {
     pub strategy: CombineStrategy,
     pub max_length: usize,
     pub seed: u64,
-    pub project_root: PathBuf,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -32,42 +30,42 @@ pub fn combine(ctx: &CombineContext, pool: &LangAwarePool) -> Result<CombineOutp
     let mut rng = Lcg::new(ctx.seed);
     let mut selected: Vec<(String, String)> = Vec::new();
     let mut selected_set: HashSet<String> = HashSet::new();
+    let mut pctx = PickCtx {
+        theme: &ctx.theme,
+        rng: &mut rng,
+        selected: &mut selected,
+        selected_set: &mut selected_set,
+    };
 
     for (cat_name, cat) in &ctx.theme.order.fixed {
-        let stem = stem_from_file(&cat.file)
-            .ok_or_else(|| PromptError::InvalidFile(cat.file.clone()))?;
+        let stem =
+            stem_from_file(&cat.file).ok_or_else(|| PromptError::InvalidFile(cat.file.clone()))?;
         let bucket = lang_store
             .get(&stem)
             .ok_or_else(|| PromptError::UnknownCategory(cat_name.clone()))?;
         pick_n(
-            &ctx.theme,
+            &mut pctx,
             bucket,
             cat_name,
             cat.count,
             cat.max.unwrap_or(cat.count),
             false,
-            &mut rng,
-            &mut selected,
-            &mut selected_set,
         )?;
     }
 
     for (cat_name, cat) in &ctx.theme.order.random {
-        let stem = stem_from_file(&cat.file)
-            .ok_or_else(|| PromptError::InvalidFile(cat.file.clone()))?;
+        let stem =
+            stem_from_file(&cat.file).ok_or_else(|| PromptError::InvalidFile(cat.file.clone()))?;
         let bucket = lang_store
             .get(&stem)
             .ok_or_else(|| PromptError::UnknownCategory(cat_name.clone()))?;
         pick_n(
-            &ctx.theme,
+            &mut pctx,
             bucket,
             cat_name,
             cat.count,
             cat.max.unwrap_or(cat.count),
             false,
-            &mut rng,
-            &mut selected,
-            &mut selected_set,
         )?;
     }
 
@@ -79,21 +77,11 @@ pub fn combine(ctx: &CombineContext, pool: &LangAwarePool) -> Result<CombineOutp
         let Some(bucket) = lang_store.get(&stem) else {
             continue;
         };
-        let roll = (rng.next_u32() as f32) / (u32::MAX as f32);
+        let roll = (pctx.rng.next_u32() as f32) / (u32::MAX as f32);
         if roll > opt.probability {
             continue;
         }
-        pick_n(
-            &ctx.theme,
-            bucket,
-            cat_name,
-            opt.count,
-            opt.count,
-            true,
-            &mut rng,
-            &mut selected,
-            &mut selected_set,
-        )?;
+        pick_n(&mut pctx, bucket, cat_name, opt.count, opt.count, true)?;
     }
 
     if selected.len() > ctx.theme.generation.max_elements {
@@ -112,16 +100,20 @@ pub fn combine(ctx: &CombineContext, pool: &LangAwarePool) -> Result<CombineOutp
     Ok(CombineOutput { prompt, selected })
 }
 
+struct PickCtx<'a> {
+    theme: &'a Theme,
+    rng: &'a mut Lcg,
+    selected: &'a mut Vec<(String, String)>,
+    selected_set: &'a mut HashSet<String>,
+}
+
 fn pick_n(
-    theme: &Theme,
+    pctx: &mut PickCtx<'_>,
     bucket: &indexmap::IndexSet<String>,
     cat_name: &str,
     count: usize,
     max: usize,
     optional: bool,
-    rng: &mut Lcg,
-    selected: &mut Vec<(String, String)>,
-    selected_set: &mut HashSet<String>,
 ) -> Result<(), PromptError> {
     let upper = (count.max(max)).min(bucket.len());
     if upper == 0 {
@@ -130,25 +122,25 @@ fn pick_n(
         }
         return Err(PromptError::EmptyCategory(cat_name.into()));
     }
-    let n_pick = count + rng.gen_range(upper - count + 1);
+    let n_pick = count + pctx.rng.gen_range(upper - count + 1);
     let max_attempts = n_pick * 32 + 64;
     let mut attempts = 0;
 
     let mut picked: Vec<String> = Vec::new();
     while picked.len() < n_pick && attempts < max_attempts {
         attempts += 1;
-        let item = match bucket.get_index(rng.gen_range(bucket.len())) {
+        let item = match bucket.get_index(pctx.rng.gen_range(bucket.len())) {
             Some(s) => s.clone(),
             None => break,
         };
-        if selected_set.contains(&item) {
+        if pctx.selected_set.contains(&item) {
             continue;
         }
-        if violates_conflict(theme, cat_name, &item, &picked) {
+        if violates_conflict(pctx.theme, cat_name, &item, &picked) {
             continue;
         }
         picked.push(item.clone());
-        selected_set.insert(item);
+        pctx.selected_set.insert(item);
     }
 
     if picked.len() < count && !optional {
@@ -156,7 +148,7 @@ fn pick_n(
     }
 
     for item in picked {
-        selected.push((cat_name.to_string(), item));
+        pctx.selected.push((cat_name.to_string(), item));
     }
     Ok(())
 }
@@ -166,10 +158,10 @@ fn violates_conflict(theme: &Theme, cat_name: &str, candidate: &str, picked: &[S
         return false;
     };
     for group in groups {
-        if group.iter().any(|g| g == candidate) {
-            if group.iter().any(|g| picked.iter().any(|p| p == g)) {
-                return true;
-            }
+        if group.iter().any(|g| g == candidate)
+            && group.iter().any(|g| picked.iter().any(|p| p == g))
+        {
+            return true;
         }
     }
     false
@@ -188,7 +180,9 @@ fn truncate(s: &str, max: usize) -> String {
 
 pub fn stem_from_file(file: &str) -> Option<String> {
     let p = Path::new(file);
-    p.file_stem().and_then(|s| s.to_str()).map(|s| s.to_string())
+    p.file_stem()
+        .and_then(|s| s.to_str())
+        .map(|s| s.to_string())
 }
 
 pub async fn refine(agent: Option<&AgentKind>, prompt: &str) -> String {
@@ -213,7 +207,6 @@ mod tests {
     use super::*;
     use crate::tags::LangAwarePool;
     use std::io::Write;
-    use std::path::PathBuf;
 
     fn write_pool(dir: &Path, lang: Lang, files: &[(&str, &[&str])]) {
         std::fs::create_dir_all(dir.join(lang.as_str())).unwrap();
@@ -248,7 +241,6 @@ mod tests {
             strategy: CombineStrategy::Comma,
             max_length: 800,
             seed,
-            project_root: PathBuf::from("/nonexistent"),
         }
     }
 
@@ -297,10 +289,7 @@ hair = { file = "tags/zh/发型.txt", count = 1, max = 1 }
         write_pool(
             dir.path(),
             Lang::Zh,
-            &[(
-                "服装.txt",
-                &["比基尼", "毛衣", "汉服", "牛仔裤", "T恤"],
-            )],
+            &[("服装.txt", &["比基尼", "毛衣", "汉服", "牛仔裤", "T恤"])],
         );
         let pool = load_pool(dir.path(), &[Lang::Zh]);
         let theme = load_theme_str(

@@ -16,8 +16,6 @@ pub enum ComfyuiError {
     Http(#[from] reqwest::Error),
     #[error("invalid response: {0}")]
     InvalidResponse(String),
-    #[error("timeout after {0:?}")]
-    Timeout(Duration),
 }
 
 pub struct ComfyuiClient {
@@ -27,9 +25,7 @@ pub struct ComfyuiClient {
 
 impl ComfyuiClient {
     pub fn new(base_url: impl Into<String>) -> Result<Self, ComfyuiError> {
-        let http = Client::builder()
-            .timeout(Duration::from_secs(30))
-            .build()?;
+        let http = Client::builder().timeout(Duration::from_secs(30)).build()?;
         Ok(Self {
             base_url: base_url.into().trim_end_matches('/').to_string(),
             http,
@@ -43,22 +39,14 @@ impl ComfyuiClient {
     pub fn http(&self) -> &Client {
         &self.http
     }
-
-    pub async fn system_stats(&self) -> Result<Value, ComfyuiError> {
-        let url = format!("{}/system_stats", self.base_url);
-        let resp = self.http.get(&url).send().await?;
-        if !resp.status().is_success() {
-            return Err(ComfyuiError::InvalidResponse(format!(
-                "system_stats HTTP {}",
-                resp.status()
-            )));
-        }
-        Ok(resp.json().await?)
-    }
 }
 
 pub fn make_client_id() -> String {
-    format!("auto-comfy-maker-{}-{}", std::process::id(), chrono::Utc::now().timestamp_millis())
+    format!(
+        "auto-comfy-maker-{}-{}",
+        std::process::id(),
+        chrono::Utc::now().timestamp_millis()
+    )
 }
 
 pub fn build_submit_body(workflow: &Value, client_id: &str) -> Value {
@@ -71,38 +59,11 @@ pub fn build_submit_body(workflow: &Value, client_id: &str) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wiremock::matchers::{method, path};
-    use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
-    async fn system_stats_returns_json() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/system_stats"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-                "system": { "os": "linux" },
-                "devices": []
-            })))
-            .mount(&server)
-            .await;
-
-        let client = ComfyuiClient::new(server.uri()).unwrap();
-        let v = client.system_stats().await.unwrap();
-        assert_eq!(v["system"]["os"], "linux");
-    }
-
-    #[tokio::test]
-    async fn system_stats_handles_http_error() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/system_stats"))
-            .respond_with(ResponseTemplate::new(500))
-            .mount(&server)
-            .await;
-
-        let client = ComfyuiClient::new(server.uri()).unwrap();
-        let r = client.system_stats().await;
-        assert!(matches!(r, Err(ComfyuiError::InvalidResponse(_))));
+    async fn client_base_url_trims_trailing_slash() {
+        let client = ComfyuiClient::new("http://example.com/").unwrap();
+        assert_eq!(client.base_url(), "http://example.com");
     }
 
     #[test]

@@ -1,11 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::{DateTime, Local};
 
-#[derive(Debug, Clone)]
-pub struct AtList {
-    pub times: Vec<DateTime<Local>>,
-}
-
 pub fn parse_at(s: &str) -> Result<DateTime<Local>> {
     // 接受 RFC3339 与 "YYYY-MM-DD HH:MM:SS"（本地时区）
     if let Ok(dt) = DateTime::parse_from_rfc3339(s) {
@@ -27,10 +22,6 @@ pub fn parse_at(s: &str) -> Result<DateTime<Local>> {
     Err(anyhow!(
         "invalid --at time {s:?}; use RFC3339 or 'YYYY-MM-DD HH:MM:SS'"
     ))
-}
-
-pub fn sort_ascending(times: &mut [DateTime<Local>]) {
-    times.sort();
 }
 
 #[cfg(test)]
@@ -59,16 +50,5 @@ mod tests {
     fn reject_garbage() {
         assert!(parse_at("not a time").is_err());
         assert!(parse_at("").is_err());
-    }
-
-    #[test]
-    fn sorts_ascending() {
-        let mut v = vec![
-            parse_at("2026-09-03 00:00:00").unwrap(),
-            parse_at("2026-09-01 00:00:00").unwrap(),
-            parse_at("2026-09-02 00:00:00").unwrap(),
-        ];
-        sort_ascending(&mut v);
-        assert!(v[0] < v[1] && v[1] < v[2]);
     }
 }

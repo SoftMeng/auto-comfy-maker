@@ -36,8 +36,7 @@ pub fn load_jobs(path: &Path) -> Result<JobFile> {
     if !path.exists() {
         return Ok(JobFile::default());
     }
-    let text = std::fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?;
+    let text = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     if text.trim().is_empty() {
         return Ok(JobFile::default());
     }

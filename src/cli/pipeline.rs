@@ -40,7 +40,11 @@ pub async fn run_pipeline(
     let lang = resolve_lang(opts.lang.as_deref(), config)?;
     let strategy = resolve_strategy(opts.strategy.as_deref(), config)?;
     let max_length = opts.max_length.unwrap_or(config.prompt.default_max_length);
-    let seed = if opts.seed == 0 { config.prompt.default_seed } else { opts.seed };
+    let seed = if opts.seed == 0 {
+        config.prompt.default_seed
+    } else {
+        opts.seed
+    };
 
     let theme = Theme::load(&config.themes_root(project_root), &opts.theme_name)
         .with_context(|| format!("load theme '{}'", opts.theme_name))?;
@@ -54,11 +58,17 @@ pub async fn run_pipeline(
         strategy,
         max_length,
         seed,
-        project_root: project_root.to_path_buf(),
     };
     let out = combine(&ctx, &pool).context("combine prompt")?;
+    for (cat, val) in &out.selected {
+        tracing::debug!(category = %cat, value = %val, "selected");
+    }
 
-    let agent = if opts.use_refine { build_llm_agent(config) } else { None };
+    let agent = if opts.use_refine {
+        build_llm_agent(config)
+    } else {
+        None
+    };
     let final_prompt = refine(agent.as_ref(), &out.prompt).await;
 
     if opts.no_send {
@@ -71,7 +81,8 @@ pub async fn run_pipeline(
     }
 
     let workflow = build_workflow(config, project_root, &opts.template, &final_prompt, seed)?;
-    let image_path = Some(submit_and_download(config, &workflow).await?);
+    let image_path =
+        Some(submit_and_download(config, &workflow, project_root, &final_prompt).await?);
 
     Ok(PipelineOutcome {
         combine_prompt: out.prompt,
@@ -88,7 +99,7 @@ pub async fn run_fixed_prompt(
     project_root: &Path,
 ) -> Result<PathBuf> {
     let workflow = build_workflow(config, project_root, template, prompt, seed)?;
-    submit_and_download(config, &workflow).await
+    submit_and_download(config, &workflow, project_root, prompt).await
 }
 
 fn build_workflow(
@@ -127,7 +138,11 @@ fn build_workflow(
     {
         let mut replacer = WorkflowReplacer::new(&mut workflow);
         replacer
-            .replace_text(&entry.positive_prompt_node, &entry.positive_prompt_field, prompt)
+            .replace_text(
+                &entry.positive_prompt_node,
+                &entry.positive_prompt_field,
+                prompt,
+            )
             .context("replace positive prompt in workflow")?;
         if let (Some(node), Some(field)) = (
             entry.negative_prompt_node.as_deref(),
@@ -139,8 +154,11 @@ fn build_workflow(
         }
         if let (Some(node), Some(field)) = (entry.seed_node.as_deref(), entry.seed_field.as_deref())
         {
-            let seed_value =
-                if seed == 0 { chrono::Utc::now().timestamp() as i64 } else { seed as i64 };
+            let seed_value = if seed == 0 {
+                chrono::Utc::now().timestamp()
+            } else {
+                seed as i64
+            };
             replacer
                 .replace_int(node, field, seed_value)
                 .context("replace seed in workflow")?;
@@ -150,7 +168,12 @@ fn build_workflow(
     Ok(workflow)
 }
 
-async fn submit_and_download(config: &AppConfig, workflow: &Value) -> Result<PathBuf> {
+async fn submit_and_download(
+    config: &AppConfig,
+    workflow: &Value,
+    project_root: &Path,
+    prompt: &str,
+) -> Result<PathBuf> {
     let client = ComfyuiClient::new(&config.comfyui.url).context("init comfyui client")?;
     let client_id = make_client_id();
     let prompt_id = submit_prompt(&client, workflow, &client_id)
@@ -167,9 +190,8 @@ async fn submit_and_download(config: &AppConfig, workflow: &Value) -> Result<Pat
     .await
     .context("poll comfyui")?;
 
-    let prompt_text = String::new();
-    let output_root = std::path::PathBuf::from(&config.paths.output_dir);
-    let path = download_and_save(&client, &history, &prompt_id, &prompt_text, &output_root)
+    let output_root = config.output_root(project_root);
+    let path = download_and_save(&client, &history, &prompt_id, prompt, &output_root)
         .await
         .context("download and save image")?;
     Ok(path)
@@ -206,7 +228,10 @@ pub fn build_llm_agent(cfg: &AppConfig) -> Option<AgentKind> {
         match std::env::var(env_var) {
             Ok(v) => v,
             Err(_) => {
-                tracing::warn!(env_var, "no api key in config or env, refine() will be identity");
+                tracing::warn!(
+                    env_var,
+                    "no api key in config or env, refine() will be identity"
+                );
                 return None;
             }
         }

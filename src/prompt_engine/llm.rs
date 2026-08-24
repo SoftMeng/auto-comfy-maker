@@ -73,10 +73,7 @@ fn build_openai(cfg: &LlmConfig) -> Result<AgentKind, LlmError> {
         .map_err(|e| LlmError::Build(format!("openai: {e}")))?
         .completions_api();
 
-    let agent = client
-        .agent(&cfg.model)
-        .preamble(PREAMBLE)
-        .build();
+    let agent = client.agent(&cfg.model).preamble(PREAMBLE).build();
 
     Ok(AgentKind::OpenAI(agent))
 }
@@ -92,10 +89,7 @@ fn build_anthropic(cfg: &LlmConfig) -> Result<AgentKind, LlmError> {
         .build()
         .map_err(|e| LlmError::Build(format!("anthropic: {e}")))?;
 
-    let agent = client
-        .agent(&cfg.model)
-        .preamble(PREAMBLE)
-        .build();
+    let agent = client.agent(&cfg.model).preamble(PREAMBLE).build();
 
     Ok(AgentKind::Anthropic(agent))
 }

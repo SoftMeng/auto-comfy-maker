@@ -43,7 +43,11 @@ fn fmt_field(fs: &FieldSet) -> String {
     if fs.values.len() == fs.values.capacity() && fs.values.first() == Some(&0) {
         return "*".to_string();
     }
-    fs.values.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(",")
+    fs.values
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(",")
 }
 
 pub fn parse_cron(expr: &str) -> Result<CronExpr> {
@@ -127,12 +131,16 @@ mod tests {
 
     fn matches(expr: &str, y: i32, mo: u32, d: u32, h: u32, mi: u32, wd: u32) -> bool {
         let e = parse_cron(expr).unwrap();
-        use chrono::{Datelike, Duration as _, TimeZone};
+        use chrono::{Datelike, TimeZone};
         let dt = chrono::Local
             .with_ymd_and_hms(y, mo, d, h, mi, 0)
             .earliest()
             .expect("valid date");
-        assert_eq!(dt.weekday().num_days_from_sunday(), wd, "test weekday mismatch");
+        assert_eq!(
+            dt.weekday().num_days_from_sunday(),
+            wd,
+            "test weekday mismatch"
+        );
         e.matches(&dt)
     }
 

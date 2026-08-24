@@ -12,7 +12,7 @@ pub struct ConfigArgs {
 }
 
 #[derive(Debug, Subcommand)]
-enum ConfigCommand {
+pub enum ConfigCommand {
     Show,
     Validate,
 }
@@ -26,7 +26,10 @@ pub fn run(args: ConfigArgs, project_root: PathBuf) -> Result<()> {
 
 fn show(project_root: &std::path::Path) -> Result<()> {
     let config = AppConfig::load(&project_root.join("config")).context("load config")?;
-    println!("{}", toml::to_string_pretty(&config).context("serialize config")?);
+    println!(
+        "{}",
+        toml::to_string_pretty(&config).context("serialize config")?
+    );
     Ok(())
 }
 

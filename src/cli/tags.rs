@@ -26,8 +26,7 @@ pub enum TagsCommand {
 pub fn run(args: TagsArgs, project_root: PathBuf) -> Result<()> {
     let config = AppConfig::load(&project_root.join("config")).context("load config")?;
     let lang_str = args.lang.as_deref().unwrap_or(&config.prompt.default_lang);
-    let lang = Lang::parse(lang_str)
-        .with_context(|| format!("unknown language: {lang_str}"))?;
+    let lang = Lang::parse(lang_str).with_context(|| format!("unknown language: {lang_str}"))?;
     let tags_dir = config.tags_root(&project_root).join(lang.as_str());
 
     match args.command {
@@ -48,7 +47,7 @@ fn list(dir: &std::path::Path) -> Result<()> {
         .collect();
     entries.sort_by_key(|e| e.file_name());
 
-    println!("{:<20} {:>6}  {}", "CATEGORY", "COUNT", "FILE");
+    println!("{:<20} {:>6}  file", "category", "count");
     for e in entries {
         let path = e.path();
         let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("?");
@@ -86,9 +85,7 @@ fn add(dir: &std::path::Path, category: &str, tag: &str) -> Result<()> {
     } else {
         String::new()
     };
-    let already = existing
-        .lines()
-        .any(|l| l.trim() == tag);
+    let already = existing.lines().any(|l| l.trim() == tag);
     if already {
         println!("already exists: {category}/{tag}");
         return Ok(());
@@ -110,10 +107,7 @@ fn remove(dir: &std::path::Path, category: &str, tag: &str) -> Result<()> {
         anyhow::bail!("category '{category}' not found: {}", path.display());
     }
     let existing = std::fs::read_to_string(&path)?;
-    let filtered: Vec<&str> = existing
-        .lines()
-        .filter(|l| l.trim() != tag)
-        .collect();
+    let filtered: Vec<&str> = existing.lines().filter(|l| l.trim() != tag).collect();
     if filtered.len() == existing.lines().count() {
         println!("not found: {category}/{tag}");
         return Ok(());

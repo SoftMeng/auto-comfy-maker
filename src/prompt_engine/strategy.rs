@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-
 #[derive(Debug, Error)]
 pub enum PromptError {
     #[error("unknown language: {0}")]
@@ -10,8 +9,6 @@ pub enum PromptError {
     UnknownCategory(String),
     #[error("category has no usable elements: {0}")]
     EmptyCategory(String),
-    #[error("max retries exceeded resolving conflicts for category: {0}")]
-    ConflictUnresolvable(String),
     #[error("invalid file path in theme: {0}")]
     InvalidFile(String),
 }
@@ -97,8 +94,17 @@ mod tests {
 
     #[test]
     fn strategy_join() {
-        assert_eq!(CombineStrategy::Comma.join(&["a".into(), "b".into()]), "a, b");
-        assert_eq!(CombineStrategy::Newline.join(&["a".into(), "b".into()]), "a\nb");
-        assert_eq!(CombineStrategy::Natural.join(&["a".into(), "b".into()]), "a b");
+        assert_eq!(
+            CombineStrategy::Comma.join(&["a".into(), "b".into()]),
+            "a, b"
+        );
+        assert_eq!(
+            CombineStrategy::Newline.join(&["a".into(), "b".into()]),
+            "a\nb"
+        );
+        assert_eq!(
+            CombineStrategy::Natural.join(&["a".into(), "b".into()]),
+            "a b"
+        );
     }
 }

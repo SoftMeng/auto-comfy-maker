@@ -47,10 +47,6 @@ pub struct TagStore {
 }
 
 impl TagStore {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn load_file(&mut self, category: &str, path: &Path) -> Result<(), TagsError> {
         let text = std::fs::read_to_string(path).map_err(|e| TagsError::Io {
             path: path.display().to_string(),
@@ -69,14 +65,6 @@ impl TagStore {
 
     pub fn get(&self, category: &str) -> Option<&IndexSet<String>> {
         self.by_category.get(category)
-    }
-
-    pub fn categories(&self) -> impl Iterator<Item = &String> {
-        self.by_category.keys()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.by_category.is_empty()
     }
 }
 
@@ -110,11 +98,10 @@ impl LangAwarePool {
             if path.extension().and_then(|s| s.to_str()) != Some("txt") {
                 continue;
             }
-            let stem = match path.file_stem().and_then(|s| s.to_str()) {
-                Some(s) => s.to_string(),
-                None => continue,
+            let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else {
+                continue;
             };
-            store.load_file(&stem, &path)?;
+            store.load_file(stem, &path)?;
         }
         Ok(())
     }
@@ -139,12 +126,8 @@ mod tests {
     fn load_categories_by_filename() {
         let dir = tempfile::tempdir().unwrap();
         let f = dir.path().join("发型.txt");
-        std::fs::write(
-            &f,
-            "# comment\n\n长发\n 短发 \n# another\n盘发\n",
-        )
-        .unwrap();
-        let mut store = TagStore::new();
+        std::fs::write(&f, "# comment\n\n长发\n 短发 \n# another\n盘发\n").unwrap();
+        let mut store = TagStore::default();
         store.load_file("发型", &f).unwrap();
         let bucket = store.get("发型").unwrap();
         assert_eq!(bucket.len(), 3);
@@ -156,7 +139,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let f = dir.path().join("a.txt");
         std::fs::write(&f, "长发\n长发\n短发\n").unwrap();
-        let mut store = TagStore::new();
+        let mut store = TagStore::default();
         store.load_file("a", &f).unwrap();
         assert_eq!(store.get("a").unwrap().len(), 2);
     }

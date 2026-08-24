@@ -6,8 +6,10 @@ use clap::Args;
 
 use super::pipeline::{run_fixed_prompt, run_pipeline, PipelineOpts};
 use crate::config::AppConfig;
-use crate::scheduler::persist::{load_jobs, mark_completed, mark_failed, save_jobs, JobRecord, JobStatus};
 use crate::scheduler::parse_cron;
+use crate::scheduler::persist::{
+    load_jobs, mark_completed, mark_failed, save_jobs, JobRecord, JobStatus,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum DaemonMode {
@@ -78,9 +80,7 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
         DaemonMode::Fixed => Some(load_fixed_prompt(&args)?),
         DaemonMode::Auto => None,
     };
-    if args.mode == DaemonMode::Auto
-        && (args.prompt.is_some() || args.prompt_file.is_some())
-    {
+    if args.mode == DaemonMode::Auto && (args.prompt.is_some() || args.prompt_file.is_some()) {
         anyhow::bail!("--mode auto 禁止提供 --prompt / --prompt-file");
     }
 
@@ -104,15 +104,14 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     let mut tick_interval = tokio::time::interval(Duration::from_secs(1));
     tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
-    let mut at_queue: Vec<chrono::DateTime<chrono::Local>> =
-        match &trigger {
-            Trigger::At(v) => {
-                let mut q = v.clone();
-                q.sort();
-                q
-            }
-            _ => Vec::new(),
-        };
+    let mut at_queue: Vec<chrono::DateTime<chrono::Local>> = match &trigger {
+        Trigger::At(v) => {
+            let mut q = v.clone();
+            q.sort();
+            q
+        }
+        _ => Vec::new(),
+    };
 
     let mut last_fired: Option<(String, chrono::DateTime<chrono::Local>)> = None;
 
@@ -130,9 +129,8 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                 let now = chrono::Local::now();
                 let should_fire = match &trigger {
                     Trigger::Interval(d) => {
-                        match last_fired.as_ref().map(|(k, _)| k.as_str()) {
-                            Some(k) if k == "interval" => {
-                                let (_, t) = last_fired.as_ref().unwrap();
+                        match last_fired.as_ref() {
+                            Some((_, t)) => {
                                 now.signed_duration_since(*t).to_std().unwrap_or_default() >= *d
                             }
                             _ => true,
@@ -156,11 +154,8 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                 }
 
                 // interval 模式记录上次触发时间（cron 按 1s 轮询匹配）
-                match &trigger {
-                    Trigger::Interval(_) => {
-                        last_fired = Some(("interval".to_string(), now));
-                    }
-                    _ => {}
+                if let Trigger::Interval(_) = &trigger {
+                    last_fired = Some(("interval".to_string(), now));
                 }
 
                 if let Err(e) = run_tick(
@@ -194,7 +189,7 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
 async fn run_tick(
     args: &DaemonArgs,
     config: &AppConfig,
-    project_root: &PathBuf,
+    project_root: &std::path::Path,
     persist_path: &std::path::Path,
     fixed_prompt: Option<&str>,
     now: chrono::DateTime<chrono::Local>,
@@ -272,9 +267,9 @@ async fn run_tick(
 
 fn build_trigger(args: &DaemonArgs) -> Result<Trigger> {
     if let Some(iv) = &args.interval {
-        return Ok(Trigger::Interval(crate::scheduler::interval::parse_duration(
-            iv,
-        )?));
+        return Ok(Trigger::Interval(
+            crate::scheduler::interval::parse_duration(iv)?,
+        ));
     }
     if let Some(c) = &args.cron {
         return Ok(Trigger::Cron(parse_cron(c)?));
