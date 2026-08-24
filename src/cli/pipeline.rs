@@ -244,6 +244,7 @@ pub fn build_llm_agent(cfg: &AppConfig) -> Option<AgentKind> {
         model: llm.model.clone(),
         api_key,
         base_url: llm.base_url.clone(),
+        disable_thinking: llm.disable_thinking,
     };
     match build_agent(&llm_cfg) {
         Ok(a) => Some(a),

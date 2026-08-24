@@ -42,6 +42,7 @@ provider = "openai"        # openai | anthropic（与 rig-core provider 枚举�
 model = "gpt-4o-mini"      # openai: gpt-4o-mini / gpt-4o；anthropic: claude-3-5-sonnet 等
 api_key = ""               # 也可读环境变量 OPENAI_API_KEY / ANTHROPIC_API_KEY
 base_url = "https://api.openai.com/v1"  # provider = openai 时生效
+disable_thinking = false   # true 时向 provider 传 enable_thinking=false（DashScope/Qwen 推荐关闭）
 max_tokens = 500
 temperature = 0.7
 

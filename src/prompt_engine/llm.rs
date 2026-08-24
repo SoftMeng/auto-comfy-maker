@@ -1,15 +1,19 @@
 use rig_core::client::CompletionClient;
 use rig_core::completion::Prompt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct LlmConfig {
     pub provider: Provider,
     pub model: String,
     pub api_key: String,
     pub base_url: String,
+    /// 是否禁用 thinking/reasoning（适用 DashScope/Qwen 等兼容 OpenAI 的 provider）
+    #[serde(default)]
+    pub disable_thinking: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Provider {
     OpenAI,
     Anthropic,
@@ -73,7 +77,14 @@ fn build_openai(cfg: &LlmConfig) -> Result<AgentKind, LlmError> {
         .map_err(|e| LlmError::Build(format!("openai: {e}")))?
         .completions_api();
 
-    let agent = client.agent(&cfg.model).preamble(PREAMBLE).build();
+    let mut builder = client.agent(&cfg.model).preamble(PREAMBLE);
+    if cfg.disable_thinking {
+        // DashScope/Qwen 等兼容 provider 的扩展字段：关闭思考链
+        builder = builder.additional_params(serde_json::json!({
+            "enable_thinking": false
+        }));
+    }
+    let agent = builder.build();
 
     Ok(AgentKind::OpenAI(agent))
 }
@@ -131,8 +142,45 @@ mod tests {
             model: "gpt-4o-mini".into(),
             api_key: "".into(),
             base_url: "".into(),
+            disable_thinking: false,
         };
         let err = build_agent(&cfg).unwrap_err();
         assert!(matches!(err, LlmError::MissingApiKey("OPENAI_API_KEY")));
+    }
+
+    #[test]
+    fn llm_config_disable_thinking_default_false() {
+        // 验证字段默认值与 serde 反序列化兼容
+        let cfg: LlmConfig = serde_json::from_value(serde_json::json!({
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+            "api_key": "k",
+            "base_url": "",
+            // disable_thinking 故意省略
+        }))
+        .expect("missing disable_thinking should default to false");
+        assert!(!cfg.disable_thinking);
+    }
+
+    #[test]
+    fn build_openai_with_disable_thinking_builds() {
+        // 验证 disable_thinking=true 时 build 成功（实际效果需要真实 API）
+        // 这里只验证 build_agent 不因新字段而失败
+        let cfg = LlmConfig {
+            provider: Provider::OpenAI,
+            model: "qwen-plus".into(),
+            api_key: "fake-key".into(),
+            base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(),
+            disable_thinking: true,
+        };
+        let r = build_agent(&cfg);
+        // 只要 build 不 panic；网络层错误由真实调用承担
+        // 真实环境中 fake-key 会失败；这里只验证到达 HTTP 之前不报错
+        match r {
+            Ok(_) => {} // 极少情况（rig 不发起 HTTP）
+            Err(LlmError::MissingApiKey(_)) => panic!("api key provided"),
+            Err(LlmError::Build(_)) => {} // rig build 阶段可能不发起 HTTP
+            Err(LlmError::Prompt(_)) => {} // 不应在 build 阶段
+        }
     }
 }

@@ -60,6 +60,8 @@ pub struct LlmSection {
     pub api_key: String,
     #[serde(default)]
     pub base_url: String,
+    #[serde(default)]
+    pub disable_thinking: bool,
 }
 
 fn default_provider() -> String {
