@@ -1,0 +1,14 @@
+# ComfyUI Workflow 模板节点 ID 映射
+#
+# 添加新模板：
+# 1. 在 ComfyUI 中设计 workflow，导出 JSON 到本目录
+# 2. 在本文件添加 [templates.<name>] 段
+# 3. 运行 `cargo run -- generate --template <name> --theme <t> --lang <l>`
+
+[templates.default]
+positive_prompt_node = "6"
+positive_prompt_field = "inputs.text"
+negative_prompt_node = "7"
+negative_prompt_field = "inputs.text"
+seed_node = "3"
+seed_field = "inputs.seed"

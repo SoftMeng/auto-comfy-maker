@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
 mod cli;
+mod comfyui;
 mod config;
 mod prompt_engine;
 mod tags;
@@ -25,7 +26,8 @@ fn project_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -37,7 +39,7 @@ fn main() -> Result<()> {
     let root = project_root();
 
     match cli.command {
-        Commands::Generate(args) => cli::run_generate(args, root).context("generate")?,
+        Commands::Generate(args) => cli::run_generate(args, root).await.context("generate")?,
     }
     Ok(())
 }

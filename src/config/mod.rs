@@ -21,6 +21,7 @@ pub enum ConfigError {
 pub struct AppConfig {
     pub app: AppSection,
     pub prompt: PromptSection,
+    pub comfyui: ComfyuiSection,
     pub paths: PathsSection,
 }
 
@@ -39,11 +40,19 @@ pub struct PromptSection {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComfyuiSection {
+    pub url: String,
+    pub poll_interval_secs: u64,
+    pub timeout_secs: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathsSection {
     pub themes_dir: String,
     pub tags_dir: String,
     pub output_dir: String,
     pub logs_dir: String,
+    pub templates_dir: String,
 }
 
 impl Default for AppConfig {
@@ -59,11 +68,17 @@ impl Default for AppConfig {
                 default_max_length: 800,
                 default_seed: 0,
             },
+            comfyui: ComfyuiSection {
+                url: "http://127.0.0.1:8188".to_string(),
+                poll_interval_secs: 2,
+                timeout_secs: 300,
+            },
             paths: PathsSection {
                 themes_dir: "themes".to_string(),
                 tags_dir: "tags".to_string(),
                 output_dir: "output".to_string(),
                 logs_dir: "logs".to_string(),
+                templates_dir: "templates".to_string(),
             },
         }
     }
@@ -125,6 +140,10 @@ impl AppConfig {
 
     pub fn output_root(&self, project_root: &Path) -> PathBuf {
         project_root.join(&self.paths.output_dir)
+    }
+
+    pub fn templates_root(&self, project_root: &Path) -> PathBuf {
+        project_root.join(&self.paths.templates_dir)
     }
 }
 
