@@ -1,0 +1,518 @@
+{
+  "8": {
+    "inputs": {
+      "samples": [
+        "55",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "11": {
+    "inputs": {
+      "text": [
+        "54",
+        0
+      ],
+      "clip": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "15": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "28": {
+    "inputs": {
+      "width": 768,
+      "height": 1536,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "44": {
+    "inputs": {
+      "unet_name": "anima-base-v1.0.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "45": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "46": {
+    "inputs": {
+      "lora_name": "anima/anima-turbo-lora-v0.1.safetensors",
+      "strength_model": 0.78,
+      "model": [
+        "60",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA加载器（仅模型）"
+    }
+  },
+  "47": {
+    "inputs": {
+      "output_path": "[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 92,
+      "optimize_image": "true",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "true",
+      "show_previews": "true",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "48": {
+    "inputs": {
+      "number_type": "float",
+      "minimum": 100004894712,
+      "maximum": 9999970974894712,
+      "seed": 0
+    },
+    "class_type": "Random Number",
+    "_meta": {
+      "title": "Random Number"
+    }
+  },
+  "49": {
+    "inputs": {
+      "number": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "Number to String",
+    "_meta": {
+      "title": "Number to String"
+    }
+  },
+  "50": {
+    "inputs": {
+      "a": [
+        "48",
+        2
+      ],
+      "b": 1,
+      "operation": "subtract"
+    },
+    "class_type": "easy mathInt",
+    "_meta": {
+      "title": "整数运算"
+    }
+  },
+  "51": {
+    "inputs": {
+      "path": "output/[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "file_extension": ".txt",
+      "encoding": "utf-8",
+      "filename_suffix": "",
+      "text": [
+        "54",
+        0
+      ]
+    },
+    "class_type": "Save Text File",
+    "_meta": {
+      "title": "Save Text File"
+    }
+  },
+  "52": {
+    "inputs": {
+      "text": "REPLACE_ME"
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "UserPrompt"
+    }
+  },
+  "53": {
+    "inputs": {
+      "text": "masterpiece, best quality, sensitive, nsfw, explicit, score_9, score_8, score_7, score_6, score_5, highres, absurdres, @Jang Chan, unshaded piece, 1girl and 1man, from side, doggy style, sex with man's huge penis, tremble violently, holes in different clothes, orgasm, tall and slim, long legs, elongated legs, tall leg proportion, fair skin, cum, coloring contour line, gesture line, simple background, spread her butt cheeks apart with her hands, all fours, he is grabbing her boobs from behind, fishnet stockings, stiletto nails, hulk, wall, "
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "P01"
+    }
+  },
+  "54": {
+    "inputs": {
+      "delimiter": ",",
+      "clean_whitespace": "true",
+      "text_a": [
+        "53",
+        0
+      ],
+      "text_b": [
+        "52",
+        0
+      ],
+      "text_c": [
+        "68",
+        0
+      ],
+      "text_d": [
+        "68",
+        0
+      ]
+    },
+    "class_type": "Text Concatenate",
+    "_meta": {
+      "title": "Prompt01"
+    }
+  },
+  "55": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "48",
+        2
+      ],
+      "steps": 11,
+      "cfg": 1,
+      "sampler_name": "er_sde",
+      "scheduler": "normal",
+      "start_at_step": 0,
+      "end_at_step": 11,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "46",
+        0
+      ],
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "94",
+        0
+      ],
+      "latent_image": [
+        "28",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "56": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_ukfmn_00987_.png&type=temp&subfolder=&rand=0.4516452647559952"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_ukfmn_00988_.png&type=temp&subfolder=&rand=0.577294045406476"
+          }
+        ]
+      },
+      "image_a": [
+        "47",
+        0
+      ],
+      "image_b": [
+        "59",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
+  "57": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "50",
+        0
+      ],
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "sa_solver",
+      "scheduler": "normal",
+      "start_at_step": 2,
+      "end_at_step": 10,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "46",
+        0
+      ],
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "94",
+        0
+      ],
+      "latent_image": [
+        "55",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "58": {
+    "inputs": {
+      "samples": [
+        "57",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "59": {
+    "inputs": {
+      "output_path": "[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 92,
+      "optimize_image": "true",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "true",
+      "show_previews": "true",
+      "images": [
+        "58",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "60": {
+    "inputs": {
+      "lora_name": "anima/anima-highres-aesthetic-boost.safetensors",
+      "strength_model": 0.98,
+      "model": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA加载器（仅模型）"
+    }
+  },
+  "68": {
+    "inputs": {
+      "text": "semi-realistic anime style, sharp clear edges, tall slim realistic proportion, intricate details, ultra detailed, minimal shading, highly detailed fabric texture,"
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "UserPrompt"
+    }
+  },
+  "69": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "48",
+        2
+      ],
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "er_sde",
+      "scheduler": "normal",
+      "start_at_step": 2,
+      "end_at_step": 10,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "46",
+        0
+      ],
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "94",
+        0
+      ],
+      "latent_image": [
+        "57",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "70": {
+    "inputs": {
+      "samples": [
+        "69",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "71": {
+    "inputs": {
+      "output_path": "[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 92,
+      "optimize_image": "true",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "true",
+      "show_previews": "true",
+      "images": [
+        "70",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "72": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_oyupt_00987_.png&type=temp&subfolder=&rand=0.6714208702165485"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_oyupt_00988_.png&type=temp&subfolder=&rand=0.3268091364061203"
+          }
+        ]
+      },
+      "image_a": [
+        "59",
+        0
+      ],
+      "image_b": [
+        "71",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
+  "94": {
+    "inputs": {
+      "conditioning": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "条件零化"
+    }
+  }
+}
