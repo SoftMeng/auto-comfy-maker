@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -54,17 +54,17 @@ fn default_optional_count() -> usize {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OrderSections {
     #[serde(default)]
-    pub fixed: HashMap<String, CategoryRef>,
+    pub fixed: BTreeMap<String, CategoryRef>,
     #[serde(default)]
-    pub random: HashMap<String, CategoryRef>,
+    pub random: BTreeMap<String, CategoryRef>,
     #[serde(default)]
-    pub optional: HashMap<String, OptionalCategoryRef>,
+    pub optional: BTreeMap<String, OptionalCategoryRef>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Compatibility {
     #[serde(default)]
-    pub conflicts: HashMap<String, Vec<Vec<String>>>,
+    pub conflicts: BTreeMap<String, Vec<Vec<String>>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

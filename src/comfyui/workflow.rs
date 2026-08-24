@@ -31,6 +31,12 @@ pub fn read_template(project_root: &Path, template_name: &str) -> Result<String,
 ///
 /// 替换是**纯字符串**——节点 ID 是多少、字段路径多深都无关。
 /// 这意味着用户从 ComfyUI 导出 workflow 后，只需把"想注入的位置"写成 ${positive_prompt} 等占位符即可。
+///
+/// 默认尺寸：768×1536（竖版，符合角色生成常用比例）。
+/// 调用方传入 width/height 时使用传入值；传 None 时使用默认值。
+pub const DEFAULT_WIDTH: i64 = 768;
+pub const DEFAULT_HEIGHT: i64 = 1536;
+
 pub fn substitute(
     template: &str,
     positive_prompt: &str,
@@ -45,14 +51,13 @@ pub fn substitute(
         .replace("${提示词}", positive_prompt);
     let seed_str = seed.to_string();
     out = out.replace("${seed}", &seed_str).replace("${种子}", &seed_str);
-    if let Some(w) = width {
-        let ws = w.to_string();
-        out = out.replace("${width}", &ws).replace("${宽}", &ws);
-    }
-    if let Some(h) = height {
-        let hs = h.to_string();
-        out = out.replace("${height}", &hs).replace("${高}", &hs);
-    }
+    // 宽高：None 时用默认值，避免占位符字面量进入 ComfyUI 触发类型错误
+    let w = width.unwrap_or(DEFAULT_WIDTH);
+    let h = height.unwrap_or(DEFAULT_HEIGHT);
+    let ws = w.to_string();
+    let hs = h.to_string();
+    out = out.replace("${width}", &ws).replace("${宽}", &ws);
+    out = out.replace("${height}", &hs).replace("${高}", &hs);
     out
 }
 
@@ -106,13 +111,14 @@ mod tests {
     }
 
     #[test]
-    fn omits_optional_dims_when_none() {
-        // 不传 width/height 时：模板里的 ${width}/${height} 字面量保留
+    fn uses_defaults_when_dims_none() {
+        // 不传 width/height 时：使用默认尺寸（768×1536）替换占位符
         let out = substitute(TINY, "x", 7, None, None);
-        assert!(out.contains("\"width\": ${width}"));
-        assert!(out.contains("\"height\": ${height}"));
-        assert!(out.contains("\"text\": \"x\""));
-        assert!(out.contains("\"seed\": 7"));
+        let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+        assert_eq!(v["39"]["inputs"]["width"], DEFAULT_WIDTH);
+        assert_eq!(v["39"]["inputs"]["height"], DEFAULT_HEIGHT);
+        assert_eq!(v["39"]["inputs"]["text"], "x");
+        assert_eq!(v["39"]["inputs"]["seed"], 7);
     }
 
     #[test]
