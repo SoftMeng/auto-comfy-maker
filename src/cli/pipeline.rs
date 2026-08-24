@@ -6,8 +6,7 @@ use serde_json::Value;
 
 use crate::comfyui::download::download_and_save;
 use crate::comfyui::prompt::{poll_until_ready, submit_prompt};
-use crate::comfyui::workflow::Manifest;
-use crate::comfyui::{make_client_id, ComfyuiClient, WorkflowReplacer};
+use crate::comfyui::{make_client_id, read_template, substitute, ComfyuiClient};
 use crate::config::AppConfig;
 use crate::prompt_engine::{
     build_agent, combine, refine, AgentKind, CombineContext, CombineStrategy, LlmConfig, Provider,
@@ -105,7 +104,7 @@ pub async fn run_fixed_prompt(
 }
 
 fn build_workflow(
-    config: &AppConfig,
+    _config: &AppConfig,
     project_root: &Path,
     template: &str,
     prompt: &str,
@@ -113,80 +112,22 @@ fn build_workflow(
     width: Option<u32>,
     height: Option<u32>,
 ) -> Result<Value> {
-    let template_path = config
-        .templates_root(project_root)
-        .join(format!("{}.json", template));
-    if !template_path.exists() {
-        anyhow::bail!(
-            "template not found: {} (add templates/{}.json)",
-            template_path.display(),
-            template
-        );
-    }
-    let template_text = std::fs::read_to_string(&template_path)
-        .with_context(|| format!("read template {}", template_path.display()))?;
-    let mut workflow: Value = serde_json::from_str(&template_text)
-        .with_context(|| format!("parse template {}", template_path.display()))?;
-
-    let manifest_path = config.templates_root(project_root).join("MANIFEST.toml");
-    let manifest = Manifest::load(&manifest_path).with_context(|| {
-        format!(
-            "load MANIFEST.toml (required to map prompt/seed fields; see {})",
-            manifest_path.display()
-        )
-    })?;
-    let entry = manifest
-        .get(template)
-        .ok_or_else(|| anyhow::anyhow!("template '{}' not in MANIFEST.toml", template))?;
-
-    {
-        let mut replacer = WorkflowReplacer::new(&mut workflow);
-        replacer
-            .replace_text(
-                &entry.positive_prompt_node,
-                &entry.positive_prompt_field,
-                prompt,
-            )
-            .context("replace positive prompt in workflow")?;
-        if let (Some(node), Some(field)) = (
-            entry.negative_prompt_node.as_deref(),
-            entry.negative_prompt_field.as_deref(),
-        ) {
-            replacer
-                .replace_text(node, field, "")
-                .context("replace negative prompt in workflow")?;
-        }
-        if let (Some(node), Some(field)) = (entry.seed_node.as_deref(), entry.seed_field.as_deref())
-        {
-            let seed_value = if seed == 0 {
-                chrono::Utc::now().timestamp()
-            } else {
-                seed as i64
-            };
-            replacer
-                .replace_int(node, field, seed_value)
-                .context("replace seed in workflow")?;
-        }
-        if let (Some(node), Some(field), Some(w)) = (
-            entry.width_node.as_deref(),
-            entry.width_field.as_deref(),
-            width,
-        ) {
-            replacer
-                .replace_int(node, field, w as i64)
-                .context("replace width in workflow")?;
-        }
-        if let (Some(node), Some(field), Some(h)) = (
-            entry.height_node.as_deref(),
-            entry.height_field.as_deref(),
-            height,
-        ) {
-            replacer
-                .replace_int(node, field, h as i64)
-                .context("replace height in workflow")?;
-        }
-    }
-
+    let template_text = read_template(project_root, template)
+        .with_context(|| format!("read template '{template}'"))?;
+    let seed_value: i64 = if seed == 0 {
+        chrono::Utc::now().timestamp()
+    } else {
+        seed as i64
+    };
+    let substituted = substitute(
+        &template_text,
+        prompt,
+        seed_value,
+        width.map(|w| w as i64),
+        height.map(|h| h as i64),
+    );
+    let workflow: Value = serde_json::from_str(&substituted)
+        .with_context(|| format!("parse substituted template '{template}'"))?;
     Ok(workflow)
 }
 

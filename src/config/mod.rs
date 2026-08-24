@@ -216,10 +216,6 @@ impl AppConfig {
     pub fn output_root(&self, project_root: &Path) -> PathBuf {
         project_root.join(&self.paths.output_dir)
     }
-
-    pub fn templates_root(&self, project_root: &Path) -> PathBuf {
-        project_root.join(&self.paths.templates_dir)
-    }
 }
 
 #[cfg(test)]

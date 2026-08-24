@@ -8,7 +8,7 @@ pub mod download;
 pub mod prompt;
 pub mod workflow;
 
-pub use workflow::WorkflowReplacer;
+pub use workflow::{read_template, substitute};
 
 #[derive(Debug, Error)]
 pub enum ComfyuiError {

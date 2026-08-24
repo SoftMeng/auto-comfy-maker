@@ -63,8 +63,8 @@
   },
   "68": {
     "inputs": {
-      "width": 1024,
-      "height": 1024,
+      "width": "${宽}",
+      "height": "${高}",
       "batch_size": 1
     },
     "class_type": "EmptySD3LatentImage",
@@ -196,7 +196,7 @@
   },
   "82": {
     "inputs": {
-      "seed": 0
+      "seed": "${种子}"
     },
     "class_type": "easy seed",
     "_meta": {
@@ -261,7 +261,7 @@
   },
   "91": {
     "inputs": {
-      "text": "REPLACE_ME"
+      "text": "${提示词}"
     },
     "class_type": "Text Multiline",
     "_meta": {
