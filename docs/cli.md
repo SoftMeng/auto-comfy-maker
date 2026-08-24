@@ -10,7 +10,7 @@ CLI 采用 **clap 4.x derive 模式**，五个子命令覆盖所有使用场景�
 
 | 参数 | 短参 | 类型 | 默认 | 说明 |
 |------|------|------|------|------|
-| `--template` | `-t` | string | `zimage` | workflow 模板名（无扩展名；可选 `anima`） |
+| `--template` | `-t` | string | `anima-aesthetic` | workflow 模板名（无扩展名；另有 `anima` / `zimage`） |
 | `--tags` | | string[] | 自动 | 覆盖维度标签（key=value） |
 | `--count` | `-n` | u32 | 1 | 生成张数（≤ 16） |
 | `--refine` | | bool | true | 是否调用 LLM 优化 |

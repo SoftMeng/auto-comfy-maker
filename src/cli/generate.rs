@@ -23,7 +23,7 @@ pub struct GenerateArgs {
     #[arg(long, default_value_t = 0)]
     pub seed: u64,
 
-    #[arg(long, default_value = "zimage")]
+    #[arg(long, default_value = "anima-aesthetic")]
     pub template: String,
 
     #[arg(long)]

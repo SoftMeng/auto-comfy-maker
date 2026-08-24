@@ -1,0 +1,444 @@
+{
+  "8": {
+    "inputs": {
+      "samples": [
+        "55",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "11": {
+    "inputs": {
+      "text": [
+        "54",
+        0
+      ],
+      "clip": [
+        "45",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "15": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "28": {
+    "inputs": {
+      "width": "${宽}",
+      "height": "${高}",
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "44": {
+    "inputs": {
+      "unet_name": "anima-aesthetic-v1.1.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "45": {
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "46": {
+    "inputs": {
+      "lora_name": "anima/anima-turbo-lora-v0.1.safetensors",
+      "strength_model": 0.88,
+      "model": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA加载器（仅模型）"
+    }
+  },
+  "47": {
+    "inputs": {
+      "output_path": "[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 92,
+      "optimize_image": "true",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "true",
+      "show_previews": "true",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "48": {
+    "inputs": {
+      "number_type": "float",
+      "minimum": 70974894712,
+      "maximum": 615270974894712,
+      "seed": "${seed}"
+    },
+    "class_type": "Random Number",
+    "_meta": {
+      "title": "Random Number"
+    }
+  },
+  "49": {
+    "inputs": {
+      "number": [
+        "48",
+        0
+      ]
+    },
+    "class_type": "Number to String",
+    "_meta": {
+      "title": "Number to String"
+    }
+  },
+  "50": {
+    "inputs": {
+      "a": [
+        "48",
+        2
+      ],
+      "b": 1,
+      "operation": "subtract"
+    },
+    "class_type": "easy mathInt",
+    "_meta": {
+      "title": "整数运算"
+    }
+  },
+  "51": {
+    "inputs": {
+      "path": "output/[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "file_extension": ".txt",
+      "encoding": "utf-8",
+      "filename_suffix": "",
+      "text": [
+        "54",
+        0
+      ]
+    },
+    "class_type": "Save Text File",
+    "_meta": {
+      "title": "Save Text File"
+    }
+  },
+  "54": {
+    "inputs": {
+      "delimiter": ",",
+      "clean_whitespace": "true",
+      "text_c": [
+        "68",
+        0
+      ]
+    },
+    "class_type": "Text Concatenate",
+    "_meta": {
+      "title": "Prompt01"
+    }
+  },
+  "55": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "48",
+        2
+      ],
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "start_at_step": 0,
+      "end_at_step": 10,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "46",
+        0
+      ],
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "94",
+        0
+      ],
+      "latent_image": [
+        "28",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "56": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_ufpiu_04319_.png&type=temp&subfolder=&rand=0.7853909219689157"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_ufpiu_04320_.png&type=temp&subfolder=&rand=0.01010160285006767"
+          }
+        ]
+      },
+      "image_a": [
+        "47",
+        0
+      ],
+      "image_b": [
+        "59",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
+  "57": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "50",
+        0
+      ],
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "er_sde",
+      "scheduler": "normal",
+      "start_at_step": 1,
+      "end_at_step": 10,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "46",
+        0
+      ],
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "94",
+        0
+      ],
+      "latent_image": [
+        "55",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "58": {
+    "inputs": {
+      "samples": [
+        "57",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "59": {
+    "inputs": {
+      "output_path": "[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 92,
+      "optimize_image": "true",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "true",
+      "show_previews": "true",
+      "images": [
+        "58",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "68": {
+    "inputs": {
+      "text": "${提示词}"
+    },
+    "class_type": "Text Multiline",
+    "_meta": {
+      "title": "UserPrompt"
+    }
+  },
+  "69": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "48",
+        2
+      ],
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "er_sde",
+      "scheduler": "beta",
+      "start_at_step": 2,
+      "end_at_step": 10,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "46",
+        0
+      ],
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "94",
+        0
+      ],
+      "latent_image": [
+        "57",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "K采样器（高级）"
+    }
+  },
+  "70": {
+    "inputs": {
+      "samples": [
+        "69",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "71": {
+    "inputs": {
+      "output_path": "[time(%Y-%m-%d)]",
+      "filename_prefix": [
+        "49",
+        0
+      ],
+      "filename_delimiter": "_",
+      "filename_number_padding": 4,
+      "filename_number_start": "false",
+      "extension": "jpg",
+      "dpi": 300,
+      "quality": 92,
+      "optimize_image": "true",
+      "lossless_webp": "false",
+      "overwrite_mode": "false",
+      "show_history": "false",
+      "show_history_by_prefix": "false",
+      "embed_workflow": "true",
+      "show_previews": "true",
+      "images": [
+        "70",
+        0
+      ]
+    },
+    "class_type": "Image Save",
+    "_meta": {
+      "title": "Image Save"
+    }
+  },
+  "94": {
+    "inputs": {
+      "conditioning": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "条件零化"
+    }
+  }
+}
