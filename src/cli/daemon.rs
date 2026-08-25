@@ -288,7 +288,9 @@ async fn run_tick(
                     println!("[{}] {}", record.id, p);
                     Ok(None)
                 } else {
-                    run_fixed_prompt(p, &args.template, 0, args.lang.as_deref(), config, project_root)
+                    let tick_seed = (chrono::Utc::now().timestamp_subsec_nanos() as u64)
+                        .wrapping_add(i as u64);
+                    run_fixed_prompt(p, &args.template, tick_seed, args.lang.as_deref(), config, project_root)
                         .await
                         .map(|path| Some(path.display().to_string()))
                 }
