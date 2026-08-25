@@ -9,6 +9,9 @@ target/
 **/*.rs.bk
 Cargo.lock.bak
 
+# Release artifacts (built by scripts/build.sh)
+dist/
+
 # 本项目运行时（不进仓库）
 output/
 logs/

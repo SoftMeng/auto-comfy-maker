@@ -121,21 +121,25 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     // Background task: install signal handlers and forward to the watch channel.
     tokio::spawn(async move {
         let ctrl_c = tokio::signal::ctrl_c();
-        let mut sigterm = match tokio::signal::unix::signal(
-            tokio::signal::unix::SignalKind::terminate(),
-        ) {
-            Ok(s) => s,
-            Err(e) => {
+
+        #[cfg(unix)]
+        let sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .map_err(|e| {
                 tracing::error!(error = %e, "install SIGTERM handler");
-                return;
-            }
-        };
+                e
+            })
+            .ok();
+        #[cfg(not(unix))]
+        let sigterm: Option<tokio::signal::windows::CtrlBreak> = None;
+
         tokio::select! {
             _ = ctrl_c => {
                 eprintln!("\n[signal] received Ctrl-C");
                 let _ = shutdown_tx.send(true);
             }
-            _ = sigterm.recv() => {
+            _ = async {
+                if let Some(mut s) = sigterm { s.recv().await } else { std::future::pending().await }
+            } => {
                 eprintln!("\n[signal] received SIGTERM");
                 let _ = shutdown_tx.send(true);
             }
