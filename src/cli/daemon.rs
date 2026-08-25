@@ -1,11 +1,8 @@
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
 use clap::Args;
-use tokio::sync::Notify;
 
 use super::pipeline::{run_fixed_prompt, run_pipeline, PipelineOpts};
 use crate::config::AppConfig;
@@ -115,14 +112,35 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     println!("persist: {}", persist_path.display());
     println!("press Ctrl-C to stop");
 
-    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-        .context("install SIGTERM handler")?;
+    // Watch channel for shutdown signal: sender writes `true` on Ctrl-C / SIGTERM,
+    // every receiver (loop-top, run_tick wrapper, task-interval wrapper) reads it.
+    // Watch is broadcast-ish: receivers always see the latest value, never miss a signal
+    // even if they're not currently awaiting.
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(false);
 
-    // Signal abort handle shared between the outer select and run_tick.
-    // notify_waiters wakes all .notified() awaiters immediately.
-    let abort = Arc::new(Notify::new());
-    // Loop-wide shutdown flag: set by any signal path or interrupted select.
-    let shutdown = Arc::new(AtomicBool::new(false));
+    // Background task: install signal handlers and forward to the watch channel.
+    tokio::spawn(async move {
+        let ctrl_c = tokio::signal::ctrl_c();
+        let mut sigterm = match tokio::signal::unix::signal(
+            tokio::signal::unix::SignalKind::terminate(),
+        ) {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::error!(error = %e, "install SIGTERM handler");
+                return;
+            }
+        };
+        tokio::select! {
+            _ = ctrl_c => {
+                eprintln!("\n[signal] received Ctrl-C");
+                let _ = shutdown_tx.send(true);
+            }
+            _ = sigterm.recv() => {
+                eprintln!("\n[signal] received SIGTERM");
+                let _ = shutdown_tx.send(true);
+            }
+        }
+    });
 
     let mut tick_interval = tokio::time::interval(Duration::from_secs(1));
     tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -139,21 +157,24 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     let mut last_fired: Option<(String, chrono::DateTime<chrono::Local>)> = None;
 
     loop {
-        if shutdown.load(Ordering::SeqCst) {
-            break;
+        if *shutdown_rx.borrow() {
+            println!("daemon stopped");
+            return Ok(());
         }
         tokio::select! {
-            _ = tokio::signal::ctrl_c() => {
-                println!("\nreceived Ctrl-C, exiting");
-                shutdown.store(true, Ordering::SeqCst);
-                abort.notify_waiters();
-            }
-            _ = sigterm.recv() => {
-                println!("\nreceived SIGTERM, exiting");
-                shutdown.store(true, Ordering::SeqCst);
-                abort.notify_waiters();
+            biased;
+            _ = shutdown_rx.changed() => {
+                // Signal arrived between loop iterations; exit immediately.
+                if *shutdown_rx.borrow() {
+                    println!("daemon stopped");
+                    return Ok(());
+                }
             }
             _ = tick_interval.tick() => {
+                if *shutdown_rx.borrow() {
+                    println!("daemon stopped");
+                    return Ok(());
+                }
                 let now = chrono::Local::now();
                 let should_fire = match &trigger {
                     Trigger::Interval(d) => {
@@ -188,12 +209,10 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     _ => None,
                 };
 
-                // 二级 select：让 abort signal 能中断 tick 内部的 poll/download 等待
+                // 二级 select：让 shutdown signal 能中断 tick 内部的 poll/download 等待
                 tokio::select! {
-                    _ = abort.notified() => {
-                        println!("\ninterrupted during tick, exiting");
-                        shutdown.store(true, Ordering::SeqCst);
-                    }
+                    biased;
+                    _ = shutdown_rx.changed() => {}
                     res = run_tick(
                         &args,
                         &config,
@@ -210,15 +229,12 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     }
                 }
 
-                // 间隔结束后 break 出内层 select，外层 loop 重置 tick_interval、记录 last_fired 等
-
                 // Continuous 模式：每个 tick 完成后等 task-interval 再开下一个
                 if let Trigger::Continuous(d) = &trigger {
                     println!("waiting {:?} before next task...", d);
                     tokio::select! {
-                        _ = abort.notified() => {
-                            shutdown.store(true, Ordering::SeqCst);
-                        }
+                        biased;
+                        _ = shutdown_rx.changed() => {}
                         _ = tokio::time::sleep(*d) => {}
                     }
                 }
