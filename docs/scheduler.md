@@ -38,6 +38,29 @@
 
 **实现**：启动时按时间排序；到点触发；从列表移除；列表空则退出 daemon。
 
+## Fixed prompt 中的占位符
+
+`--mode fixed --prompt "..."` 的 prompt 在提交 ComfyUI 之前，会先做一次占位符扩展：
+
+| 占位符 | 含义 |
+|---|---|
+| `${<dimension>}` | 从 `tags/<lang>/<dimension>.txt` 随机抽一个 tag 替换（按 seed 确定性） |
+
+**示例**：
+
+```bash
+auto-comfy-maker daemon \
+  --at "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" \
+  --mode fixed \
+  --prompt '1girl, ${art_style}, ${background}, masterpiece' \
+  --lang en \
+  --template anima-lora
+```
+
+每执行一次，`${art_style}` 和 `${background}` 都会从对应 tag 池抽一个填进去，其余文本原样保留。
+
+**未匹配到的维度**原样保留（不静默吞掉，便于调试）。
+
 ## 调度器架构
 
 ```

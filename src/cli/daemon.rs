@@ -255,7 +255,7 @@ async fn run_tick(
                     println!("[{}] {}", record.id, p);
                     Ok(None)
                 } else {
-                    run_fixed_prompt(p, &args.template, 0, config, project_root)
+                    run_fixed_prompt(p, &args.template, 0, args.lang.as_deref(), config, project_root)
                         .await
                         .map(|path| Some(path.display().to_string()))
                 }

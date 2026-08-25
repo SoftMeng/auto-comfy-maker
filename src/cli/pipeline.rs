@@ -96,11 +96,149 @@ pub async fn run_fixed_prompt(
     prompt: &str,
     template: &str,
     seed: u64,
+    lang: Option<&str>,
     config: &AppConfig,
     project_root: &Path,
 ) -> Result<PathBuf> {
-    let workflow = build_workflow(config, project_root, template, prompt, seed, None, None)?;
-    submit_and_download(config, &workflow, project_root, prompt).await
+    let resolved_lang = lang
+        .and_then(Lang::parse)
+        .unwrap_or_else(|| Lang::parse(&config.prompt.default_lang).unwrap_or(Lang::En));
+    let pool = load_pool_for_lang(config, project_root, resolved_lang)?;
+    let expanded = expand_prompt_placeholders(prompt, &pool, resolved_lang, seed);
+    let workflow = build_workflow(config, project_root, template, &expanded, seed, None, None)?;
+    submit_and_download(config, &workflow, project_root, &expanded).await
+}
+
+fn load_pool_for_lang(
+    config: &AppConfig,
+    project_root: &Path,
+    lang: Lang,
+) -> Result<LangAwarePool> {
+    let mut pool = LangAwarePool::new();
+    pool.load_dir(lang, &config.tags_root(project_root).join(lang.as_str()))
+        .context("load tags for fixed-prompt expansion")?;
+    Ok(pool)
+}
+
+/// 扫描 prompt 中的 ${dimension} 占位符，从对应 tag 类别里按 seed 确定性抽一个替换。
+/// 未匹配到的占位符原样保留（不静默吞掉，便于调试）。
+pub fn expand_prompt_placeholders(
+    prompt: &str,
+    pool: &LangAwarePool,
+    lang: Lang,
+    seed: u64,
+) -> String {
+    let mut out = String::with_capacity(prompt.len());
+    let mut rest = prompt;
+    while let Some(start) = rest.find("${") {
+        out.push_str(&rest[..start]);
+        let after = &rest[start + 2..];
+        if let Some(end_rel) = after.find('}') {
+            let dim = &after[..end_rel];
+            let replacement = pick_from_category(pool, lang, dim, seed);
+            match replacement {
+                Some(v) => out.push_str(&v),
+                None => out.push_str(&rest[start..start + 3 + end_rel]),
+            }
+            rest = &after[end_rel + 1..];
+        } else {
+            // 无闭合 } — 原样追加并停止扫描
+            out.push_str(&rest[start..]);
+            rest = "";
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+fn pick_from_category(
+    pool: &LangAwarePool,
+    lang: Lang,
+    dim: &str,
+    seed: u64,
+) -> Option<String> {
+    let bucket = pool.get(lang)?.get(dim)?;
+    if bucket.is_empty() {
+        return None;
+    }
+    // 确定性 LCG：seed 相同 → 选择相同；seed=0 用时间戳已经在上游做了
+    let mut lcg: u64 = seed.wrapping_add(hash_dim(dim));
+    lcg = lcg.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    let idx = (lcg >> 33) as usize % bucket.len();
+    bucket.get_index(idx).cloned()
+}
+
+fn hash_dim(s: &str) -> u64 {
+    let mut h: u64 = 1469598103934665603;
+    for b in s.bytes() {
+        h ^= b as u64;
+        h = h.wrapping_mul(1099511628211);
+    }
+    h
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    fn write_tag(dir: &Path, name: &str, lines: &[&str]) {
+        let mut f = std::fs::File::create(dir.join(name)).unwrap();
+        for l in lines {
+            writeln!(f, "{}", l).unwrap();
+        }
+    }
+
+    #[test]
+    fn expand_replaces_known_dimension() {
+        let dir = tempfile::tempdir().unwrap();
+        write_tag(dir.path(), "art_style.txt", &["watercolor", "oil painting", "ink wash"]);
+        let mut pool = LangAwarePool::new();
+        pool.load_dir(Lang::En, dir.path()).unwrap();
+        let out = expand_prompt_placeholders(
+            "1girl, ${art_style}, masterpiece",
+            &pool,
+            Lang::En,
+            42,
+        );
+        assert!(!out.contains("${art_style}"));
+        assert!(out.starts_with("1girl, "));
+        assert!(out.ends_with(", masterpiece"));
+    }
+
+    #[test]
+    fn expand_is_seed_deterministic() {
+        let dir = tempfile::tempdir().unwrap();
+        write_tag(dir.path(), "pose.txt", &["standing", "sitting", "walking"]);
+        let mut pool = LangAwarePool::new();
+        pool.load_dir(Lang::En, dir.path()).unwrap();
+        let a = expand_prompt_placeholders("${pose}", &pool, Lang::En, 99);
+        let b = expand_prompt_placeholders("${pose}", &pool, Lang::En, 99);
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn expand_keeps_unknown_dimension_literal() {
+        let dir = tempfile::tempdir().unwrap();
+        write_tag(dir.path(), "known.txt", &["x"]);
+        let mut pool = LangAwarePool::new();
+        pool.load_dir(Lang::En, dir.path()).unwrap();
+        let out = expand_prompt_placeholders("hello ${no_such_dim} world", &pool, Lang::En, 1);
+        assert_eq!(out, "hello ${no_such_dim} world");
+    }
+
+    #[test]
+    fn expand_handles_multiple_placeholders() {
+        let dir = tempfile::tempdir().unwrap();
+        write_tag(dir.path(), "a.txt", &["alpha", "beta"]);
+        write_tag(dir.path(), "b.txt", &["one", "two"]);
+        let mut pool = LangAwarePool::new();
+        pool.load_dir(Lang::En, dir.path()).unwrap();
+        let out = expand_prompt_placeholders("${a} and ${b}", &pool, Lang::En, 7);
+        assert!(!out.contains("${a}"));
+        assert!(!out.contains("${b}"));
+        assert!(out.contains(" and "));
+    }
 }
 
 fn build_workflow(
