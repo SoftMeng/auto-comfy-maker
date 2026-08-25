@@ -4,6 +4,8 @@
 
 **Turn tag libraries + themes into ComfyUI-ready prompts — automatically.**
 
+[English](./README.md) · [简体中文](./README.zh.md)
+
 </div>
 
 <div align="center">
