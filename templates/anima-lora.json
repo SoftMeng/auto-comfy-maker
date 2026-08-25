@@ -42,8 +42,8 @@
   },
   "28": {
     "inputs": {
-      "width": 768,
-      "height": 1536,
+      "width": "${width}",
+      "height": "${height}",
       "batch_size": 1
     },
     "class_type": "EmptyLatentImage",
@@ -121,7 +121,7 @@
       "number_type": "float",
       "minimum": 70974894712,
       "maximum": 615270974894712,
-      "seed": 1077806361935077
+      "seed": "${seed}"
     },
     "class_type": "Random Number",
     "_meta": {

@@ -12,18 +12,46 @@ pub enum TemplateError {
     },
     #[error("template not found: {0}")]
     NotFound(String),
+    #[error("template '{name}' missing required placeholders: {missing}")]
+    MissingPlaceholders { name: String, missing: String },
 }
 
+/// 每个 template 必须含的占位符（英文 + 中文别名任一）。
+const REQUIRED_PLACEHOLDERS: &[(&str, &[&str])] = &[
+    ("positive_prompt", &["${positive_prompt}", "${提示词}"]),
+    ("seed", &["${seed}", "${种子}"]),
+    ("width", &["${width}", "${宽}"]),
+    ("height", &["${height}", "${高}"]),
+];
+
 /// 读取模板文件（按模板名）。template_name 不含扩展名。
+/// 加载时校验 4 个必需占位符，缺失则返回错误（防止把字面量"REPLACE_ME"漏改之类的回归）。
 pub fn read_template(project_root: &Path, template_name: &str) -> Result<String, TemplateError> {
     let path = project_root.join("templates").join(format!("{template_name}.json"));
     if !path.exists() {
         return Err(TemplateError::NotFound(path.display().to_string()));
     }
-    std::fs::read_to_string(&path).map_err(|e| TemplateError::Io {
+    let text = std::fs::read_to_string(&path).map_err(|e| TemplateError::Io {
         path: path.display().to_string(),
         source: e,
-    })
+    })?;
+    let missing = validate_placeholders(&text);
+    if !missing.is_empty() {
+        return Err(TemplateError::MissingPlaceholders {
+            name: template_name.to_string(),
+            missing: missing.join(", "),
+        });
+    }
+    Ok(text)
+}
+
+/// 检查文本是否含每个必需字段的占位符（英文或中文别名）。缺失项返回字段名列表。
+fn validate_placeholders(text: &str) -> Vec<&'static str> {
+    REQUIRED_PLACEHOLDERS
+        .iter()
+        .filter(|(_, aliases)| !aliases.iter().any(|a| text.contains(a)))
+        .map(|(field, _)| *field)
+        .collect()
 }
 
 /// 在模板文本中按占位符替换。
@@ -138,7 +166,7 @@ mod tests {
         std::fs::create_dir(dir.path().join("templates")).unwrap();
         std::fs::write(
             dir.path().join("templates/demo.json"),
-            r#"{"91":{"inputs":{"text":"${positive_prompt}","seed":${seed}}}}"#,
+            r#"{"91":{"inputs":{"text":"${positive_prompt}","seed":${seed},"width":${width},"height":${height}}}}"#,
         )
         .unwrap();
         let text = read_template(dir.path(), "demo").unwrap();
@@ -150,5 +178,50 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let err = read_template(dir.path(), "nope").unwrap_err();
         assert!(matches!(err, TemplateError::NotFound(_)));
+    }
+
+    fn write_template(dir: &Path, body: &str) {
+        let tpl_dir = dir.join("templates");
+        std::fs::create_dir_all(&tpl_dir).unwrap();
+        std::fs::write(tpl_dir.join("demo.json"), body).unwrap();
+    }
+
+    #[test]
+    fn read_template_accepts_full_placeholders() {
+        let dir = tempfile::tempdir().unwrap();
+        write_template(
+            dir.path(),
+            r#"{"n":{"inputs":{"text":"${positive_prompt}","seed":${seed},"width":${width},"height":${height}}}"#,
+        );
+        assert!(read_template(dir.path(), "demo").is_ok());
+    }
+
+    #[test]
+    fn read_template_accepts_chinese_alias_placeholders() {
+        let dir = tempfile::tempdir().unwrap();
+        write_template(
+            dir.path(),
+            r#"{"n":{"inputs":{"text":"${提示词}","seed":${种子},"width":${宽},"height":${高}}}"#,
+        );
+        assert!(read_template(dir.path(), "demo").is_ok());
+    }
+
+    #[test]
+    fn read_template_reports_missing_placeholders() {
+        let dir = tempfile::tempdir().unwrap();
+        write_template(
+            dir.path(),
+            r#"{"n":{"inputs":{"text":"${positive_prompt}"}}}"#,
+        );
+        let err = read_template(dir.path(), "demo").unwrap_err();
+        match err {
+            TemplateError::MissingPlaceholders { missing, .. } => {
+                assert!(missing.contains("seed"));
+                assert!(missing.contains("width"));
+                assert!(missing.contains("height"));
+                assert!(!missing.contains("positive_prompt"));
+            }
+            other => panic!("expected MissingPlaceholders, got {other:?}"),
+        }
     }
 }
