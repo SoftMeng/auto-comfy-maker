@@ -13,7 +13,7 @@
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg)](./LICENSE)
 [![Rust 2021](https://img.shields.io/badge/Rust-2021%20Edition-orange.svg)](https://www.rust-lang.org/)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Compatible-blueviolet.svg)](https://github.com/comfyanonymous/ComfyUI)
-[![Tests](https://img.shields.io/badge/tests-70_passing-success.svg)](#-开发)
+[![Tests](https://img.shields.io/badge/tests-79_passing-success.svg)](#-开发)
 [![Cross compile](https://img.shields.io/badge/Linux_x86__64-static-lightgrey.svg)](#-部署)
 
 </div>
@@ -44,8 +44,10 @@
 | 🔗 **可组合** | 多个主题混用、批量中途换 prompt，无需改代码。 |
 | 🤖 **LLM 可选** | 用 OpenAI / Anthropic 润色（基于 [rig-core](https://github.com/0xPlaygrounds/rig)）。失败自动回退。 |
 | 📡 **ComfyUI 原生** | 提交 workflow JSON、轮询、下载 PNG——和 ComfyUI 的"Queue Prompt"一模一样。 |
+| 🪄 **标签占位符** | `--mode fixed --prompt` 里写 `${dimension}`，提交时从 tag 池抽一个填进去。 |
 | ⏰ **四种调度模式** | `interval` · `cron` · `at` · `task-interval`——前三种互斥；`task-interval` 单用合法 |
-| 📦 **单一静态二进制** | `cargo-zigbuild` 交叉编译出 5.3 MB 的全静态 Linux 二进制。 |
+| 🛑 **Ctrl-C 立即生效** | daemon 收到 SIGINT 后立即取消正在进行的 ComfyUI 请求，不用等当前任务跑完。 |
+| 📦 **单一静态二进制** | `cargo-zigbuild` 交叉编译出 5.2 MB 的全静态 Linux 二进制。 |
 | 🛡️ **配置分层** | `default.toml`（进仓库） + `local.toml`（gitignore） + 环境变量。 |
 
 ---
@@ -69,6 +71,14 @@ cargo build --release
 
 # 4. 或者每小时自动生成的守护进程
 ./target/release/auto-comfy-maker daemon --interval 1h --mode auto --theme anima-simple
+
+# 5. 或者一个每完成一张就等 5 秒的持续守护进程
+./target/release/auto-comfy-maker daemon \
+  --task-interval 5s \
+  --mode fixed \
+  --prompt '1girl, ${art_style}, ${background}' \
+  --template anima-lora \
+  --lang en
 ```
 
 生成的图片通常落在 `output/<YYYY-MM-DD>/<timestamp>_<hash>.png`。
@@ -134,6 +144,31 @@ ComfyUI workflow 是 **JSON 数据**，不是代码。从 ComfyUI 导出 workflo
 
 ---
 
+## 🪄 Prompt 里的标签占位符
+
+`--mode fixed --prompt` 里可以用 `${维度}` 在提交时从标签池抽一个填进去：
+
+```bash
+./target/release/auto-comfy-maker daemon \
+  --at "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" \
+  --mode fixed \
+  --prompt '1girl, ${art_style}, ${background}, masterpiece' \
+  --template anima-lora \
+  --lang en
+```
+
+每次执行，从 `tags/<lang>/<维度>.txt` 抽一个（按 seed 确定性抽样）。**未匹配到的维度原样保留**——写错字立刻看到，不会被静默吞掉。
+
+| 占位符 | 取值来源 |
+|---|---|
+| `${art_style}` | `tags/en/art_style.txt` |
+| `${background}` | `tags/en/background.txt` |
+| `${任意名}` | `tags/en/任意名.txt`（按 `--lang` 决定语言目录） |
+
+`generate` 走的是 theme 槽位，由 `themes/*.toml` 控制抽取，不在这里。
+
+---
+
 ## 📦 CLI 速查
 
 ```text
@@ -169,16 +204,18 @@ auto-comfy-maker batch -n 20 --theme anima-simple --lang en
 </details>
 
 <details>
-<summary><b>daemon</b> — 四种互斥模式</summary>
+<summary><b>daemon</b> — 四种调度模式</summary>
 
-| 模式 | 参数 | 示例 |
-|---|---|---|
-| 周期 | `--interval 30m` | 每 30 分钟 |
-| Cron | `--cron "0 9 * * *"` | 每天 09:00 |
-| 指定时刻 | `--at 2026-09-01T09:00:00+08:00` | 一次性定时 |
-| 持续任务间隔 | `--task-interval 5s` | 持续生成，每张间隔 5s |
+| 模式 | 参数 | 示例 | 行为 |
+|---|---|---|---|
+| 周期 | `--interval 30m` | 每 30 分钟 | 固定周期，首次立即触发 |
+| Cron | `--cron "0 9 * * *"` | 每天 09:00 | 标准 5 字段 cron |
+| 指定时刻 | `--at 2026-09-01T09:00:00+08:00` | 一次性定时 | 列表跑完即退出 |
+| 持续任务间隔 | `--task-interval 5s` | 持续生成，每张间隔 5s | 前三种互斥；task-interval 单用合法 |
 
 守护进程持久化到 `config/schedule.toml`（gitignore）——重启不丢任务、不重复触发。
+
+**Ctrl-C 立即生效**：收到 SIGINT 后立即取消正在进行的 ComfyUI 请求，不用等当前任务跑完。
 
 </details>
 
@@ -198,6 +235,7 @@ auto-comfy-maker batch -n 20 --theme anima-simple --lang en
 | 配置 | serde + toml | 强类型配置 |
 | 错误 | thiserror（库） + anyhow（bin） | 按层清晰分离 |
 | 日志 | tracing + tracing-subscriber | 结构化、按级别过滤 |
+| 交叉编译 | cargo-zigbuild + zig | macOS → Linux 无痛静态二进制 |
 
 > [!NOTE]
 > 没有数据库。没有消息队列。没有 Web 框架。就是一个二进制，跟 ComfyUI 对话，写 PNG。
@@ -219,8 +257,8 @@ export https_proxy=http://127.0.0.1:7890 \
        http_proxy=http://127.0.0.1:7890 \
        all_proxy=socks5://127.0.0.1:7890
 
-cargo zigbuild --release --target x86_64-unknown-linux-musl
-# → target/x86_64-unknown-linux-musl/release/auto-comfy-maker (5.3 MB, 全静态链接)
+> `cargo zigbuild --release --target x86_64-unknown-linux-musl`
+# → target/x86_64-unknown-linux-musl/release/auto-comfy-maker (5.2 MB, 全静态链接)
 ```
 
 ### 用 systemd 跑守护进程
@@ -265,7 +303,7 @@ WantedBy=multi-user.target
 
 ```bash
 cargo build            # 调试版
-cargo test             # 70 个单元测试，全绿
+cargo test             # 79 个单元测试，全绿
 cargo clippy -- -D warnings
 cargo fmt --check
 ```
@@ -300,6 +338,6 @@ cargo fmt --check
 
 <div align="center">
 
-<sub>用 🦀 Rust 编写，跟 ComfyUI 对话，吐出 5.3 MB 的二进制。</sub>
+<sub>用 🦀 Rust 编写，跟 ComfyUI 对话，吐出 5.2 MB 的二进制。</sub>
 
 </div>

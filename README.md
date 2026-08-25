@@ -13,7 +13,7 @@
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-blue.svg)](./LICENSE)
 [![Rust 2021](https://img.shields.io/badge/Rust-2021%20Edition-orange.svg)](https://www.rust-lang.org/)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Compatible-blueviolet.svg)](https://github.com/comfyanonymous/ComfyUI)
-[![Tests](https://img.shields.io/badge/tests-70_passing-success.svg)](#-development)
+[![Tests](https://img.shields.io/badge/tests-79_passing-success.svg)](#-development)
 [![Cross compile](https://img.shields.io/badge/Linux_x86__64-static-lightgrey.svg)](#-deployment)
 
 </div>
@@ -44,8 +44,10 @@ The 5-minute journey: write a theme → run `generate` → get a picture.
 | 🔗 **Composable** | Mix multiple themes, swap prompts mid-batch, no code changes. |
 | 🤖 **LLM optional** | Refine tags with OpenAI / Anthropic (via [rig-core](https://github.com/0xPlaygrounds/rig)). Falls back gracefully. |
 | 📡 **ComfyUI native** | Submits a workflow JSON, polls, downloads the PNG — same as ComfyUI's "Queue Prompt". |
+| 🪄 **Tag placeholders** | `${dimension}` in `--mode fixed --prompt` — pulls from tag pool at submit time. |
 | ⏰ **Four scheduler modes** | `interval` · `cron` · `at` · `task-interval` — first three are mutually exclusive; `task-interval` stands alone |
-| 📦 **Single static binary** | Cross-compiles to a fully-static 5.3 MB Linux binary via `cargo-zigbuild`. |
+| 🛑 **Ctrl-C responsive** | Daemon aborts in-flight ComfyUI requests immediately on SIGINT. |
+| 📦 **Single static binary** | Cross-compiles to a fully-static 5.2 MB Linux binary via `cargo-zigbuild`. |
 | 🛡️ **Configuration layered** | `default.toml` (checked in) + `local.toml` (gitignored) + env vars. |
 
 ---
@@ -69,6 +71,14 @@ cargo build --release
 
 # 4. Or run a daemon that generates every hour
 ./target/release/auto-comfy-maker daemon --interval 1h --mode auto --theme anima-simple
+
+# 5. Or a continuous daemon that pauses 5s between jobs
+./target/release/auto-comfy-maker daemon \
+  --task-interval 5s \
+  --mode fixed \
+  --prompt '1girl, ${art_style}, ${background}' \
+  --template anima-lora \
+  --lang en
 ```
 
 First image typically appears in `output/<YYYY-MM-DD>/<timestamp>_<hash>.png`.
@@ -134,6 +144,31 @@ Bundled templates: `anima`, `anima-aesthetic`, `anima-lora`, `zimage`.
 
 ---
 
+## 🪄 Tag Placeholders in Prompts
+
+Use `${dimension}` inside `--mode fixed --prompt` to pull from a tag pool at submit time:
+
+```bash
+./target/release/auto-comfy-maker daemon \
+  --at "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" \
+  --mode fixed \
+  --prompt '1girl, ${art_style}, ${background}, masterpiece' \
+  --template anima-lora \
+  --lang en
+```
+
+Each invocation samples one tag per `${dimension}` from `tags/<lang>/<dimension>.txt` (deterministic by seed). Unknown dimensions are kept literal — they don't silently disappear, so typos surface immediately.
+
+| Placeholder | Pulls from |
+|---|---|
+| `${art_style}` | `tags/en/art_style.txt` |
+| `${background}` | `tags/en/background.txt` |
+| `${anything}` | `tags/en/anything.txt` (or `tags/zh/...` per `--lang`) |
+
+Works in `--mode fixed` (daemon). For `generate`, theme slots handle selection instead.
+
+---
+
 ## 📦 CLI Cheatsheet
 
 ```text
@@ -169,16 +204,18 @@ auto-comfy-maker batch -n 20 --theme anima-simple --lang en
 </details>
 
 <details>
-<summary><b>daemon</b> — four mutually exclusive modes</summary>
+<summary><b>daemon</b> — four scheduler modes</summary>
 
-| Mode | Flag | Example |
-|---|---|---|
-| Interval | `--interval 30m` | every 30 minutes |
-| Cron | `--cron "0 9 * * *"` | every day at 09:00 |
-| At list | `--at 2026-09-01T09:00:00+08:00` | one-shot at a moment |
-| Task interval | `--task-interval 5s` | continuous, 5s between jobs |
+| Mode | Flag | Example | Behavior |
+|---|---|---|---|
+| Interval | `--interval 30m` | every 30 minutes | Fixed period, first tick immediate |
+| Cron | `--cron "0 9 * * *"` | every day at 09:00 | Standard 5-field cron |
+| At list | `--at 2026-09-01T09:00:00+08:00` | one-shot at a moment | Exit when list empty |
+| Task interval | `--task-interval 5s` | continuous, 5s between jobs | First three mutually exclusive; task-interval stands alone |
 
 Daemon persists to `config/schedule.toml` (gitignored) — survives restarts, no double-fires.
+
+**Ctrl-C** aborts in-flight ComfyUI requests immediately; no need to wait for the current job to finish.
 
 </details>
 
@@ -198,6 +235,7 @@ Full reference: [`docs/cli.md`](./docs/cli.md).
 | Config | serde + toml | Strongly-typed config |
 | Errors | thiserror (lib) + anyhow (bin) | Clean separation by layer |
 | Logging | tracing + tracing-subscriber | Structured, level-filtered |
+| Cross-compile | cargo-zigbuild + zig | Painless macOS → Linux static binary |
 
 > [!NOTE]
 > No database. No message queue. No web framework. Just a binary that talks to ComfyUI and writes PNGs.
@@ -220,7 +258,7 @@ export https_proxy=http://127.0.0.1:7890 \
        all_proxy=socks5://127.0.0.1:7890
 
 cargo zigbuild --release --target x86_64-unknown-linux-musl
-# → target/x86_64-unknown-linux-musl/release/auto-comfy-maker (5.3 MB, statically linked)
+# → target/x86_64-unknown-linux-musl/release/auto-comfy-maker (5.2 MB, statically linked)
 ```
 
 ### Run as a systemd service
@@ -265,7 +303,7 @@ WantedBy=multi-user.target
 
 ```bash
 cargo build            # debug
-cargo test             # 70 unit tests, all green
+cargo test             # 79 unit tests, all green
 cargo clippy -- -D warnings
 cargo fmt --check
 ```
@@ -299,6 +337,6 @@ Dual-licensed under **MIT** or **Apache-2.0**, at your option.
 
 <div align="center">
 
-<sub>Built with 🦀 in Rust. Talks to ComfyUI. Ships a 5.3 MB binary.</sub>
+<sub>Built with 🦀 in Rust. Talks to ComfyUI. Ships a 5.2 MB binary.</sub>
 
 </div>
