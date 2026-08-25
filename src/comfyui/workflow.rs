@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use serde_json::Value;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -13,8 +12,6 @@ pub enum TemplateError {
     },
     #[error("template not found: {0}")]
     NotFound(String),
-    #[error("parse template json: {0}")]
-    Parse(#[from] serde_json::Error),
 }
 
 /// 读取模板文件（按模板名）。template_name 不含扩展名。
@@ -29,20 +26,16 @@ pub fn read_template(project_root: &Path, template_name: &str) -> Result<String,
     })
 }
 
-/// 在模板文本中按占位符 / REPLACE_ME 替换。
+/// 在模板文本中按占位符替换。
+/// 占位符是 JSON 内合法的字符串片段：${positive_prompt} / ${seed} / ${width} / ${height}。
 ///
-/// 支持两种注入方式：
-/// 1. `${positive_prompt}` / `${seed}` / `${width}` / `${height}`（及中文别名）— 模板里以字面量片段出现。
-/// 2. `"REPLACE_ME"` — 出现在 inputs.text 字符串字段时（Text Multiline / CLIPTextEncode 等节点），
-///    由本函数定位后替换。inputs.text 为数组 `[node_id, output_index]` 时是节点引用，不动。
-///
-/// 替换是纯字符串（占位符）或结构化（REPLACE_ME）。节点 ID 完全无关。
+/// 替换是**纯字符串**——节点 ID 是多少、字段路径多深都无关。
+/// 这意味着用户从 ComfyUI 导出 workflow 后，只需把"想注入的位置"写成 ${positive_prompt} 等占位符即可。
 ///
 /// 默认尺寸：768×1536（竖版，符合角色生成常用比例）。
+/// 调用方传入 width/height 时使用传入值；传 None 时使用默认值。
 pub const DEFAULT_WIDTH: i64 = 768;
 pub const DEFAULT_HEIGHT: i64 = 1536;
-
-const REPLACE_ME: &str = "REPLACE_ME";
 
 pub fn substitute(
     template: &str,
@@ -51,46 +44,21 @@ pub fn substitute(
     width: Option<i64>,
     height: Option<i64>,
 ) -> String {
+    // 每个字段支持中英文别名——glmclaw 用 ${提示词}/${宽}/${高}/${种子}；
+    // 用户从 ComfyUI 导出的 workflow 习惯英文 ${positive_prompt} 等；都识别。
     let mut out = template
         .replace("${positive_prompt}", positive_prompt)
         .replace("${提示词}", positive_prompt);
     let seed_str = seed.to_string();
     out = out.replace("${seed}", &seed_str).replace("${种子}", &seed_str);
+    // 宽高：None 时用默认值，避免占位符字面量进入 ComfyUI 触发类型错误
     let w = width.unwrap_or(DEFAULT_WIDTH);
     let h = height.unwrap_or(DEFAULT_HEIGHT);
     let ws = w.to_string();
     let hs = h.to_string();
     out = out.replace("${width}", &ws).replace("${宽}", &ws);
     out = out.replace("${height}", &hs).replace("${高}", &hs);
-    out = replace_replace_me_in_text_fields(&out, positive_prompt);
     out
-}
-
-/// 在合法 JSON 模板里定位每个节点 inputs.text 字符串字段，把字面量 "REPLACE_ME" 换成新 prompt。
-/// 数组形式的 text（节点引用）不动。
-fn replace_replace_me_in_text_fields(template: &str, prompt: &str) -> String {
-    let mut root: Value = match serde_json::from_str(template) {
-        Ok(v) => v,
-        Err(_) => return template.to_string(),
-    };
-    if let Some(obj) = root.as_object_mut() {
-        for (_id, node) in obj.iter_mut() {
-            if let Some(node_obj) = node.as_object_mut() {
-                if let Some(inputs) = node_obj.get_mut("inputs") {
-                    if let Some(inputs_obj) = inputs.as_object_mut() {
-                        if let Some(text_val) = inputs_obj.get_mut("text") {
-                            if let Some(s) = text_val.as_str() {
-                                if s == REPLACE_ME {
-                                    *text_val = Value::String(prompt.to_string());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    serde_json::to_string(&root).unwrap_or_else(|_| template.to_string())
 }
 
 #[cfg(test)]
@@ -182,39 +150,5 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let err = read_template(dir.path(), "nope").unwrap_err();
         assert!(matches!(err, TemplateError::NotFound(_)));
-    }
-
-    const REPLACE_ME_TEMPLATE: &str = r#"{
-  "68": {
-    "inputs": { "text": "REPLACE_ME" },
-    "class_type": "Text Multiline"
-  },
-  "11": {
-    "inputs": { "text": ["54", 0] },
-    "class_type": "CLIPTextEncode"
-  }
-}"#;
-
-    #[test]
-    fn replace_me_in_text_field_is_replaced() {
-        let out = substitute(REPLACE_ME_TEMPLATE, "1girl, long hair", 7, None, None);
-        let parsed: Value = serde_json::from_str(&out).unwrap();
-        assert_eq!(parsed["68"]["inputs"]["text"], "1girl, long hair");
-    }
-
-    #[test]
-    fn array_text_field_is_not_replaced() {
-        let out = substitute(REPLACE_ME_TEMPLATE, "1girl, long hair", 7, None, None);
-        let parsed: Value = serde_json::from_str(&out).unwrap();
-        assert_eq!(parsed["11"]["inputs"]["text"], serde_json::json!(["54", 0]));
-    }
-
-    #[test]
-    fn placeholder_mode_still_works_after_extension() {
-        let tpl = r#"{"91":{"inputs":{"text":"${positive_prompt}","seed":${seed}}}}"#;
-        let out = substitute(tpl, "hello", 42, None, None);
-        let parsed: Value = serde_json::from_str(&out).unwrap();
-        assert_eq!(parsed["91"]["inputs"]["text"], "hello");
-        assert_eq!(parsed["91"]["inputs"]["seed"], 42);
     }
 }

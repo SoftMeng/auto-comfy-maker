@@ -340,7 +340,7 @@
   },
   "68": {
     "inputs": {
-      "text": "1boy, big boobs, she has a small penis, sneer, nude, show,"
+      "text": "${positive_prompt}"
     },
     "class_type": "Text Multiline",
     "_meta": {

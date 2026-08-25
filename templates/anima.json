@@ -178,7 +178,7 @@
   },
   "52": {
     "inputs": {
-      "text": "REPLACE_ME"
+      "text": "${positive_prompt}"
     },
     "class_type": "Text Multiline",
     "_meta": {
