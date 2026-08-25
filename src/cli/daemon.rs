@@ -35,8 +35,7 @@ pub struct DaemonArgs {
     pub at: Vec<String>,
 
     /// 任务之间等待的间隔（如 5s / 1m），持续生成模式。
-    /// 与 --interval/--cron/--at 互斥：使用本参数时持续生成，无固定周期。
-    /// 任务完成后等指定时长，然后立即执行下一个。
+    /// 单用合法（与三选一触发器互斥）；每个 tick 完成后等待指定时长再生成下一个。
     #[arg(long, value_name = "DURATION", conflicts_with_all = ["interval", "cron", "at"])]
     pub task_interval: Option<String>,
 
@@ -163,7 +162,7 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     Trigger::At(_) => {
                         !at_queue.is_empty() && now >= at_queue[0]
                     }
-                    // Continuous 模式：每秒都触发（节奏由 run_tick 内的 sleep 控制）
+                    // Continuous 模式：每秒都触发（节奏由外层 task-interval 等待控制）
                     Trigger::Continuous(_) => true,
                 };
 
@@ -248,8 +247,8 @@ async fn run_tick(
     let tick_id = format!("tick-{}", now.format("%Y%m%d-%H%M%S"));
 
     for i in 0..args.count_per_tick {
-        // 任务之间等待：每个任务完成后都等待 task-interval
-        // （包括第一个 → 第二个、第二个 → 第三个、...）
+        // count_per_tick > 1 时，多张图之间间隔 task-interval
+        // （tick 之间的间隔在外层 loop 控制，这里只管一个 tick 内部）
         if i > 0 {
             if let Some(d) = task_interval {
                 println!("waiting {:?} before next task...", d);

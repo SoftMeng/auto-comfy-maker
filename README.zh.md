@@ -44,7 +44,7 @@
 | 🔗 **可组合** | 多个主题混用、批量中途换 prompt，无需改代码。 |
 | 🤖 **LLM 可选** | 用 OpenAI / Anthropic 润色（基于 [rig-core](https://github.com/0xPlaygrounds/rig)）。失败自动回退。 |
 | 📡 **ComfyUI 原生** | 提交 workflow JSON、轮询、下载 PNG——和 ComfyUI 的"Queue Prompt"一模一样。 |
-| ⏰ **四种调度模式** | `interval` · `cron` · `at` · `task-interval`——三选一，绝不混用。 |
+| ⏰ **四种调度模式** | `interval` · `cron` · `at` · `task-interval`——前三种互斥；`task-interval` 单用合法 |
 | 📦 **单一静态二进制** | `cargo-zigbuild` 交叉编译出 5.3 MB 的全静态 Linux 二进制。 |
 | 🛡️ **配置分层** | `default.toml`（进仓库） + `local.toml`（gitignore） + 环境变量。 |
 

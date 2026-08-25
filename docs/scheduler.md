@@ -2,9 +2,9 @@
 
 ## 结论
 
-调度器支持三种模式：**interval**（固定间隔）、**cron**（cron 表达式）、**at**（具体时刻列表）。三者在 daemon 子命令中互斥。任务实例持久化到 `config/schedule.toml`，重启后能识别"已执行"与"未执行"。
+调度器支持四种模式：**interval**（固定间隔）、**cron**（cron 表达式）、**at**（具体时刻列表）、**task-interval**（持续生成）。前三种互斥；task-interval 单用合法。任务实例持久化到 `config/schedule.toml`，重启后能识别"已执行"与"未执行"。
 
-## 三种模式
+## 四种模式
 
 ### Interval（固定间隔）
 
@@ -37,6 +37,20 @@
 ```
 
 **实现**：启动时按时间排序；到点触发；从列表移除；列表空则退出 daemon。
+
+### Task-interval（持续生成）
+
+```
+--task-interval 5s
+```
+
+**单用合法**（与 `--interval` / `--cron` / `--at` 互斥）。语义：
+
+- 每个 tick 生成 `count-per-tick` 张图（（默认 1）），
+- tick **完成后**等待 `task-interval` 时长，
+- 然后立即开始下一个 tick，循环直到 Ctrl-C / SIGTERM。
+
+**实现**：外层 loop 在 run_tick 完成后用 `tokio::select!` 同时监听 abort 信号与 sleep，让 Ctrl-C 立即生效。
 
 ## Fixed prompt 中的占位符
 
@@ -123,7 +137,7 @@ mode = "auto"
 
 ### 决策 1：模式互斥而非组合
 
-**为什么**：`--interval 30m --cron "0 9 * * *"` 语义模糊（是 AND 还是 OR？）。强制三选一让用户决策更明确。
+**为什么**：`--interval 30m --cron "0 9 * * *"` 语义模糊（是 AND 还是 OR？）。强制四选一让用户决策更明确。
 
 ### 决策 2：自实现 cron 解析
 

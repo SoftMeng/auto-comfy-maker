@@ -44,7 +44,7 @@ The 5-minute journey: write a theme → run `generate` → get a picture.
 | 🔗 **Composable** | Mix multiple themes, swap prompts mid-batch, no code changes. |
 | 🤖 **LLM optional** | Refine tags with OpenAI / Anthropic (via [rig-core](https://github.com/0xPlaygrounds/rig)). Falls back gracefully. |
 | 📡 **ComfyUI native** | Submits a workflow JSON, polls, downloads the PNG — same as ComfyUI's "Queue Prompt". |
-| ⏰ **Four scheduler modes** | `interval` · `cron` · `at` · `task-interval` — pick one, never both. |
+| ⏰ **Four scheduler modes** | `interval` · `cron` · `at` · `task-interval` — first three are mutually exclusive; `task-interval` stands alone |
 | 📦 **Single static binary** | Cross-compiles to a fully-static 5.3 MB Linux binary via `cargo-zigbuild`. |
 | 🛡️ **Configuration layered** | `default.toml` (checked in) + `local.toml` (gitignored) + env vars. |
 
