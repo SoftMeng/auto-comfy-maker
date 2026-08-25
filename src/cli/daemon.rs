@@ -1,8 +1,10 @@
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
 use clap::Args;
+use tokio::sync::Notify;
 
 use super::pipeline::{run_fixed_prompt, run_pipeline, PipelineOpts};
 use crate::config::AppConfig;
@@ -116,6 +118,10 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
         .context("install SIGTERM handler")?;
 
+    // Signal abort handle shared between the outer select and run_tick.
+    // notify_waiters wakes all .notified() awaiters immediately.
+    let abort = Arc::new(Notify::new());
+
     let mut tick_interval = tokio::time::interval(Duration::from_secs(1));
     tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
@@ -134,10 +140,12 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
                 println!("\nreceived Ctrl-C, exiting");
+                abort.notify_waiters();
                 break;
             }
             _ = sigterm.recv() => {
                 println!("\nreceived SIGTERM, exiting");
+                abort.notify_waiters();
                 break;
             }
             _ = tick_interval.tick() => {
@@ -175,19 +183,26 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     _ => None,
                 };
 
-                if let Err(e) = run_tick(
-                    &args,
-                    &config,
-                    &project_root,
-                    &persist_path,
-                    fixed_prompt.as_deref(),
-                    now,
-                    task_interval,
-                )
-                .await
-                {
-                    tracing::error!(error = %e, "tick failed");
-                    eprintln!("tick failed: {:#}", e);
+                // 二级 select：让 abort signal 能中断 tick 内部的 poll/download 等待
+                tokio::select! {
+                    _ = abort.notified() => {
+                        println!("\ninterrupted during tick, exiting");
+                        break;
+                    }
+                    res = run_tick(
+                        &args,
+                        &config,
+                        &project_root,
+                        &persist_path,
+                        fixed_prompt.as_deref(),
+                        now,
+                        task_interval,
+                    ) => {
+                        if let Err(e) = res {
+                            tracing::error!(error = %e, "tick failed");
+                            eprintln!("tick failed: {:#}", e);
+                        }
+                    }
                 }
 
                 // interval 模式：在 tick 完成后记录，避免任务耗时被计入
