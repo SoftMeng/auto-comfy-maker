@@ -205,6 +205,17 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                     }
                 }
 
+                // 间隔结束后 break 出内层 select，外层 loop 重置 tick_interval、记录 last_fired 等
+
+                // Continuous 模式：每个 tick 完成后等 task-interval 再开下一个
+                if let Trigger::Continuous(d) = &trigger {
+                    println!("waiting {:?} before next task...", d);
+                    tokio::select! {
+                        _ = abort.notified() => break,
+                        _ = tokio::time::sleep(*d) => {}
+                    }
+                }
+
                 // interval 模式：在 tick 完成后记录，避免任务耗时被计入
                 // （这样 --interval 5m 表示"从 tick 完成到下一个 tick 触发至少 5m"）
                 if let Trigger::Interval(_) = &trigger {
