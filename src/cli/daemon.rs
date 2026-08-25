@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -120,6 +121,8 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     // Signal abort handle shared between the outer select and run_tick.
     // notify_waiters wakes all .notified() awaiters immediately.
     let abort = Arc::new(Notify::new());
+    // Loop-wide shutdown flag: set by any signal path or interrupted select.
+    let shutdown = Arc::new(AtomicBool::new(false));
 
     let mut tick_interval = tokio::time::interval(Duration::from_secs(1));
     tick_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -136,16 +139,19 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
     let mut last_fired: Option<(String, chrono::DateTime<chrono::Local>)> = None;
 
     loop {
+        if shutdown.load(Ordering::SeqCst) {
+            break;
+        }
         tokio::select! {
             _ = tokio::signal::ctrl_c() => {
                 println!("\nreceived Ctrl-C, exiting");
+                shutdown.store(true, Ordering::SeqCst);
                 abort.notify_waiters();
-                break;
             }
             _ = sigterm.recv() => {
                 println!("\nreceived SIGTERM, exiting");
+                shutdown.store(true, Ordering::SeqCst);
                 abort.notify_waiters();
-                break;
             }
             _ = tick_interval.tick() => {
                 let now = chrono::Local::now();
@@ -186,7 +192,7 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                 tokio::select! {
                     _ = abort.notified() => {
                         println!("\ninterrupted during tick, exiting");
-                        break;
+                        shutdown.store(true, Ordering::SeqCst);
                     }
                     res = run_tick(
                         &args,
@@ -210,7 +216,9 @@ pub async fn run(args: DaemonArgs, project_root: PathBuf) -> Result<()> {
                 if let Trigger::Continuous(d) = &trigger {
                     println!("waiting {:?} before next task...", d);
                     tokio::select! {
-                        _ = abort.notified() => break,
+                        _ = abort.notified() => {
+                            shutdown.store(true, Ordering::SeqCst);
+                        }
                         _ = tokio::time::sleep(*d) => {}
                     }
                 }
