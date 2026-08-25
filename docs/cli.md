@@ -44,9 +44,10 @@ cargo run -- generate \
 
 | 参数 | 短参 | 类型 | 默认 | 说明 |
 |------|------|------|------|------|
-| `--interval` | `-i` | duration | — | 固定间隔（如 `30m`） |
-| `--cron` | | string | — | cron 表达式（与 interval 互斥） |
-| `--at` | | datetime[] | — | 具体时刻列表（ISO8601） |
+| `--interval` | `-i` | duration | — | 固定间隔（如 `30m`），与 `--cron`/`--at` 互斥 |
+| `--cron` | | string | — | cron 表达式，与 `--interval`/`--at` 互斥 |
+| `--at` | | datetime[] | — | 具体时刻列表（ISO8601），与 `--interval`/`--cron` 互斥 |
+| `--task-interval` | | duration | — | 持续生成模式：每完成一个任务后等指定时长再生成下一个，**单用合法**（与三选一触发器互斥） |
 | `--mode` | `-m` | enum | — | `fixed`（固定 prompt）或 `auto`（自动随机组合 prompt） |
 | `--prompt` | | string | — | `mode=fixed` 时必填：固定 prompt 文本 |
 | `--prompt-file` | | path | — | `mode=fixed` 时可选：从文件加载 prompt（与 `--prompt` 互斥） |

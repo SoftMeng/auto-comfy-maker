@@ -19,17 +19,17 @@ pub enum DaemonMode {
 
 #[derive(Debug, Args)]
 pub struct DaemonArgs {
-    /// tick 触发周期（如 5m / 2h），与 --cron/--at/--task-interval 互斥。
+    /// tick 触发周期（如 5m / 2h），与 --cron/--at 互斥。
     /// 计时从 tick 完成开始，确保每个 tick 至少间隔该时间。
-    #[arg(long, short = 'i', conflicts_with_all = ["cron", "at", "task_interval"])]
+    #[arg(long, short = 'i', conflicts_with_all = ["cron", "at"])]
     pub interval: Option<String>,
 
-    /// cron 表达式（分 时 日 月 周），与 --interval/--at/--task-interval 互斥
-    #[arg(long, conflicts_with_all = ["interval", "at", "task_interval"])]
+    /// cron 表达式（分 时 日 月 周），与 --interval/--at 互斥
+    #[arg(long, conflicts_with_all = ["interval", "at"])]
     pub cron: Option<String>,
 
-    /// 具体时刻（RFC3339 或 YYYY-MM-DD HH:MM:SS），可多次；与 --interval/--cron/--task-interval 互斥
-    #[arg(long = "at", value_name = "TIME", conflicts_with_all = ["interval", "cron", "task_interval"])]
+    /// 具体时刻（RFC3339 或 YYYY-MM-DD HH:MM:SS），可多次；与 --interval/--cron 互斥
+    #[arg(long = "at", value_name = "TIME", conflicts_with_all = ["interval", "cron"])]
     pub at: Vec<String>,
 
     /// 任务之间等待的间隔（如 5s / 1m），持续生成模式。
@@ -368,5 +368,61 @@ mod tests {
         assert_eq!(d, Duration::from_secs(10));
         let d = crate::scheduler::interval::parse_duration("1m").unwrap();
         assert_eq!(d, Duration::from_secs(60));
+    }
+
+    /// 校验四个调度参数的 clap 互斥矩阵。
+    /// 期望：interval / cron / at 三者互斥；task-interval 单用合法；
+    /// task-interval 与 interval/cron/at 仍冲突（不能与三者叠加）。
+    use clap::Parser;
+
+    #[derive(Parser, Debug)]
+    struct Wrap {
+        #[command(flatten)]
+        args: DaemonArgs,
+    }
+
+    fn parse_ok(args: &[&str]) -> Result<Wrap, clap::Error> {
+        Wrap::try_parse_from(args)
+    }
+
+    #[test]
+    fn task_interval_alone_is_allowed() {
+        assert!(parse_ok(&["x", "--mode", "fixed", "--prompt", "p", "--task-interval", "5s"]).is_ok());
+    }
+
+    #[test]
+    fn interval_with_task_interval_rejected() {
+        let r = parse_ok(&[
+            "x", "--mode", "fixed", "--prompt", "p",
+            "--interval", "1m", "--task-interval", "5s",
+        ]);
+        assert!(r.is_err(), "expected interval+task-interval to be rejected");
+    }
+
+    #[test]
+    fn interval_with_cron_rejected() {
+        let r = parse_ok(&[
+            "x", "--mode", "fixed", "--prompt", "p",
+            "--interval", "1m", "--cron", "0 * * * *",
+        ]);
+        assert!(r.is_err());
+    }
+
+    #[test]
+    fn interval_with_at_rejected() {
+        let r = parse_ok(&[
+            "x", "--mode", "fixed", "--prompt", "p",
+            "--interval", "1m", "--at", "2026-09-01T09:00:00+00:00",
+        ]);
+        assert!(r.is_err());
+    }
+
+    #[test]
+    fn cron_with_task_interval_rejected() {
+        let r = parse_ok(&[
+            "x", "--mode", "fixed", "--prompt", "p",
+            "--cron", "0 * * * *", "--task-interval", "5s",
+        ]);
+        assert!(r.is_err());
     }
 }
