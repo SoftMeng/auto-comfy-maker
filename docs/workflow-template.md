@@ -8,8 +8,9 @@ ComfyUI workflow 是 **JSON 数据**，本项目把它当成模板：用 `${posi
 
 ```
 templates/
-├── zimage.json           # Z-Image 模型（来自 glmclaw）
-├── anima.json            # Anima 模型（来自 traceclaw）
+├── zimage.json           # Z-Image 模型（来自 glmclaw）—— ${...} 占位符模式
+├── anima.json            # Anima 模型（来自 traceclaw）—— REPLACE_ME 模式
+├── anima-lora.json       # Anima + LoRA 工作流（用户上传）—— REPLACE_ME 模式
 └── <your_workflow>.json  # 你自己从 ComfyUI 导出的
 ```
 
@@ -26,10 +27,18 @@ templates/
 |--------|------|------|
 | `${positive_prompt}` 或 `${提示词}` | 字符串 | positive prompt 内容 |
 | `${seed}` 或 `${种子}` | 整数 | 随机种子（默认从时间戳生成） |
-| `${width}` 或 `${宽}` | 整数 | 图片宽度（缺省不替换） |
-| `${height}` 或 `${高}` | 整数 | 图片高度（缺省不替换） |
+| `${width}` 或 `${宽}` | 整数 | 图片宽度（缺省 768） |
+| `${height}` 或 `${高}` | 整数 | 图片高度（缺省 1536） |
 
 英文 + 中文别名同时支持。模板里写哪种都行。
+
+## REPLACE_ME 注入模式
+
+`substitute()` 还会扫描每个节点 `inputs.text` 字符串字段：若文本正好是字面量 `"REPLACE_ME"`，则替换为 prompt。`inputs.text` 为数组 `[node_id, output_index]` 时是节点引用，不动。
+
+适用场景：ComfyUI 导出的 workflow 把文本节点直接内联了字面量（没有 `${...}` 占位符）——把要注入的位置改成 `REPLACE_ME` 即可，无需手写占位符。已存在的 `templates/anima.json` 与 `templates/anima-lora.json` 都采用此模式。
+
+## 当前内置模板
 
 ## 替换流程
 
